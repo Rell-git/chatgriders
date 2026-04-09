@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Chatgrid</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#07070e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="chat-page">
+
+<!-- ════════════ NAV ════════════ -->
+<nav class="nav-sidebar">
+  <div class="nav-logo" onclick="switchPanel('world')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+      <rect x="1" y="1" width="9.5" height="9.5" rx="2"/>
+      <rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/>
+      <rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/>
+      <path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/>
+    </svg>
+  </div>
+
+  <div class="nav-items">
+    <button class="nav-btn active" data-panel="world" data-tip="World Chat" onclick="switchPanel('world')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
+      <span class="nav-label">World</span>
+    </button>
+    <button class="nav-btn" data-panel="private" data-tip="Messages" onclick="switchPanel('private')">
+      <div class="nav-badge-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="nav-badge" id="dm-badge" style="display:none"></span>
+      </div>
+      <span class="nav-label">Chats</span>
+    </button>
+    <button class="nav-btn" data-panel="groups" data-tip="Groups" onclick="switchPanel('groups')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="nav-label">Groups</span>
+    </button>
+    <button class="nav-btn" data-panel="profile" data-tip="Profile" onclick="switchPanel('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="nav-label">Profile</span>
+    </button>
+    <button class="nav-btn" data-panel="about" data-tip="About" onclick="switchPanel('about')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="nav-label">About</span>
+    </button>
+  </div>
+
+  <div class="nav-bottom">
+    <div class="nav-me" onclick="switchPanel('profile')" title="My profile">
+      <img id="nav-avatar" src="" alt="me">
+    </div>
+    <button class="nav-logout" onclick="doLogout()" title="Sign out">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </button>
+    <div class="brand-tag">🕷 webzovvo</div>
+  </div>
+</nav>
+
+<!-- ════════════ PANELS ════════════ -->
+<main class="main-content">
+
+  <!-- WORLD CHAT -->
+  <section class="panel active" id="world-panel">
+    <div class="panel-hdr">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
+      <h2>World Chat</h2>
+      <div class="hdr-right">
+        <div class="online-pill"><div class="dot-green"></div><span id="online-label">—</span></div>
+        <button class="icon-btn pwa-install-btn" id="pwa-install-btn" style="display:none" onclick="installPWA()" title="Install App">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="messages-area" id="world-msgs"><div class="spinner"></div></div>
+    <div class="chat-footer">
+      <div class="input-row">
+        <label class="img-upload-btn" title="Send image">
+          <input type="file" id="world-img-input" accept="image/*" style="display:none" onchange="uploadWorldImage(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </label>
+        <input type="text" id="world-input" placeholder="Say something to the world…" maxlength="500" autocomplete="off">
+        <button class="send-btn" onclick="sendWorld()">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVATE CHAT -->
+  <section class="panel" id="private-panel">
+    <div class="convo-sidebar" id="convo-sidebar">
+      <div class="panel-hdr">
+        <h2>Messages</h2>
+        <div class="hdr-right">
+          <button class="icon-btn" onclick="openAddModal()" title="Add contact">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="convo-search">
+        <input type="text" id="convo-search" placeholder="Search…" oninput="filterConvos(this.value)">
+      </div>
+      <div class="convo-list" id="convo-list"><div class="spinner"></div></div>
+    </div>
+
+    <div class="chat-thread" id="chat-thread">
+      <div class="thread-empty" id="thread-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="40" height="40"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span>Select a conversation</span>
+      </div>
+      <div id="thread-hdr" class="panel-hdr" style="display:none">
+        <button class="back-btn" onclick="closeThread()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="convo-av sm" onclick="viewProfile(activeUser)" style="cursor:pointer" id="thread-av-wrap">
+          <img id="thread-av" src="" alt="">
+        </div>
+        <div onclick="viewProfile(activeUser)" style="cursor:pointer">
+          <div id="thread-name" style="font-weight:700;font-size:14px"></div>
+        </div>
+      </div>
+      <div class="messages-area" id="thread-msgs" style="display:none;flex-direction:column"></div>
+      <div class="chat-footer" id="thread-footer" style="display:none">
+        <div class="input-row">
+          <label class="img-upload-btn" title="Send image">
+            <input type="file" id="pm-img-input" accept="image/*" style="display:none" onchange="uploadPmImage(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </label>
+          <button class="img-upload-btn voice-record-btn" id="voice-btn" onclick="toggleVoice()" title="Voice message">
+            <svg id="voice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <input type="text" id="thread-input" placeholder="Type a message…" maxlength="500" autocomplete="off">
+          <button class="send-btn" onclick="sendPrivate()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          </button>
+        </div>
+        <div class="voice-bar" id="voice-bar" style="display:none">
+          <div class="voice-indicator"><div class="voice-dot"></div> Recording…</div>
+          <button class="btn-danger-sm" onclick="cancelVoice()">Cancel</button>
+          <button class="btn-accent-sm" onclick="sendVoice()">Send</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GROUP CHATS -->
+  <section class="panel" id="groups-panel">
+    <div class="convo-sidebar" id="group-sidebar">
+      <div class="panel-hdr">
+        <h2>Groups</h2>
+        <div class="hdr-right">
+          <button class="icon-btn" onclick="openCreateGroup()" title="Create group">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="convo-list" id="group-list"><div class="spinner"></div></div>
+    </div>
+
+    <div class="chat-thread" id="group-thread">
+      <div class="thread-empty" id="group-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" width="40" height="40"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <span>Select or create a group</span>
+      </div>
+      <div id="group-thread-hdr" class="panel-hdr" style="display:none">
+        <button class="back-btn" onclick="closeGroupThread()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div id="group-thread-name" style="font-weight:700;font-size:14px"></div>
+        <div class="hdr-right">
+          <button class="icon-btn" onclick="openGroupInfo()" title="Group info" style="font-size:10px">Info</button>
+        </div>
+      </div>
+      <div class="messages-area" id="group-msgs" style="display:none;flex-direction:column"></div>
+      <div class="chat-footer" id="group-footer" style="display:none">
+        <div class="input-row">
+          <label class="img-upload-btn">
+            <input type="file" id="grp-img-input" accept="image/*" style="display:none" onchange="uploadGrpImage(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </label>
+          <input type="text" id="group-input" placeholder="Message group…" maxlength="500" autocomplete="off">
+          <button class="send-btn" onclick="sendGroup()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MY PROFILE -->
+  <section class="panel" id="profile-panel">
+    <div class="panel-hdr">
+      <h2>My Profile</h2>
+      <div class="hdr-right">
+        <button class="icon-btn" id="edit-toggle-btn" onclick="toggleProfileEdit()">Edit</button>
+      </div>
+    </div>
+    <div class="profile-scroll">
+      <div class="profile-wrap">
+
+        <!-- View mode -->
+        <div id="profile-view">
+          <div class="pv-avatar-wrap">
+            <div class="avatar-border-ring" id="pv-border-ring">
+              <img id="pv-avatar" src="" alt="">
+            </div>
+          </div>
+          <div class="pv-code" id="pv-code"></div>
+          <div class="pv-name" id="pv-name">—</div>
+          <div class="pv-bio"  id="pv-bio"></div>
+          <div class="pv-types" id="pv-types"></div>
+
+          <!-- My Posts -->
+          <div class="post-composer">
+            <textarea id="post-input" placeholder="What's on your mind?" maxlength="1000" rows="2"></textarea>
+            <div class="post-composer-row">
+              <label class="img-upload-btn" title="Add photo">
+                <input type="file" id="post-img-input" accept="image/*" style="display:none" onchange="setPostImage(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </label>
+              <span id="post-img-label" style="font-size:11px;color:var(--muted);flex:1"></span>
+              <button class="btn-accent-sm" onclick="submitPost()">Post</button>
+            </div>
+          </div>
+
+          <div class="posts-feed" id="my-posts"><div class="spinner"></div></div>
+        </div>
+
+        <!-- Edit mode -->
+        <div id="profile-edit" style="display:none">
+          <!-- VIP: custom photo -->
+          <div id="photo-upload-section" style="margin-bottom:14px">
+            <!-- filled by JS -->
+          </div>
+          <div class="avatar-preview-wrap">
+            <img id="edit-avatar-preview" src="" alt="">
+          </div>
+          <div class="avatar-grid" id="edit-avatar-grid"></div>
+
+          <!-- Border chooser -->
+          <div class="form-group">
+            <label>Profile Border <span class="optional">(VIP only)</span></label>
+            <div class="border-chips" id="border-chips"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Name *</label>
+            <input type="text" id="edit-name" maxlength="40">
+          </div>
+          <div class="form-group">
+            <label>Middle Name <span class="optional">(optional)</span></label>
+            <input type="text" id="edit-middle" maxlength="40">
+          </div>
+          <div class="form-group">
+            <label>Surname <span class="optional">(optional)</span></label>
+            <input type="text" id="edit-surname" maxlength="40">
+          </div>
+          <div class="form-group">
+            <label>Bio <span class="optional">(optional)</span></label>
+            <textarea id="edit-bio" maxlength="150" placeholder="Tell people about yourself…" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>I am into <span class="optional">(pick up to 3)</span></label>
+            <div class="type-chips" id="edit-types"></div>
+          </div>
+          <button class="btn" onclick="saveProfile()">Save Changes</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="panel" id="about-panel">
+    <div class="about-scroll">
+      <div class="about-wrap">
+        <div class="theme-toggle-bar">
+          <span class="tgl-label">Dark</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="about-toggle" onchange="toggleAbout(this)">
+            <div class="tgl-track"></div>
+          </label>
+          <span class="tgl-label">Light</span>
+        </div>
+        <div class="about-hero">
+          <div class="about-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><rect x="1" y="1" width="9.5" height="9.5" rx="2"/><rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/><rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/><path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/></svg>
+          </div>
+          <h1>Chatgrid</h1>
+          <p>Real-time chat · 🕷 webzovvo</p>
+        </div>
+        <div class="about-card">
+          <h3>Games by Zovvo</h3>
+          <div class="games-grid">
+            <a class="game-box" href="https://glyx.netlify.app" target="_blank" rel="noopener" style="--gc:#7b6ef6,#a78bfa"><div class="game-thumb">🎮</div><div class="game-name">GLYX</div></a>
+            <a class="game-box" href="https://csscritters.netlify.app" target="_blank" rel="noopener" style="--gc:#22d47a,#0fa854"><div class="game-thumb">🐛</div><div class="game-name">CSS Critters</div></a>
+            <a class="game-box" href="https://selosrun.netlify.app" target="_blank" rel="noopener" style="--gc:#f0a020,#e07010"><div class="game-thumb">🏃</div><div class="game-name">Selos Run</div></a>
+            <a class="game-box" href="https://lofi-cam.netlify.app" target="_blank" rel="noopener" style="--gc:#f06,#c0f"><div class="game-thumb">📷</div><div class="game-name">LOFI.CAM</div></a>
+          </div>
+        </div>
+        <div class="about-card">
+          <h3>About</h3>
+          <p>Free real-time chat. World Chat resets every 8 hours. Add friends by their code (e.g. #000001). Built with Supabase + vanilla JS · deployed on Netlify.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ════════════ MODALS ════════════ -->
+
+<!-- Add contact -->
+<div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeAddModalDirect()">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Add Contact</h3><button class="modal-close" onclick="closeAddModalDirect()">✕</button></div>
+    <p class="modal-sub">Enter a user code to find and message someone</p>
+    <div class="form-group" style="margin-bottom:10px">
+      <div class="code-input-wrap">
+        <span class="code-prefix">#</span>
+        <input type="text" id="add-code-input" placeholder="000001" maxlength="6" pattern="\d{1,6}" inputmode="numeric">
+      </div>
+    </div>
+    <div id="add-result"></div>
+    <button class="btn" onclick="searchByCode()">Search</button>
+  </div>
+</div>
+
+<!-- Profile stalk modal -->
+<div class="modal-overlay" id="profile-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box modal-profile-box">
+    <button class="modal-close" onclick="document.getElementById('profile-modal').style.display='none'">✕</button>
+    <div class="stalk-av-wrap">
+      <div class="avatar-border-ring" id="stalk-border-ring">
+        <img id="stalk-avatar" src="" alt="">
+      </div>
+    </div>
+    <div class="stalk-code" id="stalk-code"></div>
+    <div class="stalk-name" id="stalk-name"></div>
+    <div class="stalk-bio"  id="stalk-bio"></div>
+    <div class="stalk-types" id="stalk-types"></div>
+    <div class="stalk-posts" id="stalk-posts"></div>
+    <button class="btn" style="margin-top:14px" onclick="messageFromModal()">Send Message</button>
+  </div>
+</div>
+
+<!-- Create Group modal -->
+<div class="modal-overlay" id="create-group-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Create Group</h3><button class="modal-close" onclick="document.getElementById('create-group-modal').style.display='none'">✕</button></div>
+    <div class="form-group">
+      <label>Group Name *</label>
+      <input type="text" id="group-name-input" placeholder="e.g. Squad 🔥" maxlength="40">
+    </div>
+    <div class="form-group">
+      <label>Add Members <span class="optional">(user codes, comma separated)</span></label>
+      <input type="text" id="group-members-input" placeholder="000002, 000003…">
+    </div>
+    <button class="btn" onclick="createGroup()">Create Group</button>
+  </div>
+</div>
+
+<!-- Group info modal -->
+<div class="modal-overlay" id="group-info-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3 id="group-info-name"></h3><button class="modal-close" onclick="document.getElementById('group-info-modal').style.display='none'">✕</button></div>
+    <div class="form-group" style="margin-top:10px">
+      <label>Add Member</label>
+      <div class="code-input-wrap">
+        <span class="code-prefix">#</span>
+        <input type="text" id="add-member-code" placeholder="000001" maxlength="6" inputmode="numeric">
+      </div>
+    </div>
+    <button class="btn" onclick="addGroupMember()" style="margin-bottom:14px">Add</button>
+    <div id="group-member-list"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="chat.js"></script>
+</body>
+</html>
