@@ -1,9 +1,10 @@
 // ============================================================
-// CHATGRID — app.js
+// CHATGRID — app.js  v5
 // ============================================================
 
 let selSeed  = AVATAR_LIST[0].seed;
 let selStyle = AVATAR_LIST[0].style;
+let regPhotoFile = null;
 
 function goToStep(s) {
   document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
@@ -30,7 +31,10 @@ document.querySelectorAll('.auth-tab').forEach(tab => {
   });
 });
 
+// Avatar grid
 function renderAvatarGrid() {
+  selSeed  = AVATAR_LIST[0].seed;
+  selStyle = AVATAR_LIST[0].style;
   document.getElementById('avatar-preview').src = getAvatar(selSeed, selStyle);
   document.getElementById('avatar-grid').innerHTML = AVATAR_LIST.map(av => `
     <div class="av-opt ${av.seed === selSeed ? 'selected' : ''}"
@@ -41,19 +45,33 @@ function renderAvatarGrid() {
 
 function pickAvatar(seed, style) {
   selSeed = seed; selStyle = style;
-  document.getElementById('avatar-preview').src = getAvatar(seed, style);
+  if (!regPhotoFile)
+    document.getElementById('avatar-preview').src = getAvatar(seed, style);
   document.querySelectorAll('.av-opt').forEach((el, i) => {
     el.classList.toggle('selected', AVATAR_LIST[i].seed === seed);
   });
 }
 
+// Preview uploaded photo
+function previewRegPhoto(input) {
+  regPhotoFile = input.files[0];
+  if (regPhotoFile) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('avatar-preview').src = e.target.result;
+    };
+    reader.readAsDataURL(regPhotoFile);
+  }
+}
+
+// Register
 document.getElementById('register-form').addEventListener('submit', async e => {
   e.preventDefault();
   const email    = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-password').value;
-  if (!email) return showError('Email is required.');
-  if (password.length < 6) return showError('Password must be at least 6 characters.');
-  if (!/[A-Z]/.test(password)) return showError('Password needs at least one uppercase letter.');
+  if (!email)            return showError('Email is required.');
+  if (password.length < 6) return showError('Min 6 characters.');
+  if (!/[A-Z]/.test(password)) return showError('Needs at least one uppercase letter.');
   setBusy(true, 'register-form');
   const { error } = await sb.auth.signUp({ email, password });
   setBusy(false, 'register-form');
@@ -62,6 +80,7 @@ document.getElementById('register-form').addEventListener('submit', async e => {
   goToStep('B');
 });
 
+// Login
 document.getElementById('login-form').addEventListener('submit', async e => {
   e.preventDefault();
   const email    = document.getElementById('login-email').value.trim();
@@ -70,31 +89,48 @@ document.getElementById('login-form').addEventListener('submit', async e => {
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   setBusy(false, 'login-form');
   if (error) return showError(error.message);
-  const { data: profile } = await sb.from('profiles').select('id').eq('id', data.user.id).maybeSingle();
-  if (profile) {
-    window.location.href = 'chat.html';
-  } else {
-    renderAvatarGrid();
-    goToStep('B');
-  }
+  const { data: p } = await sb.from('profiles').select('id').eq('id', data.user.id).maybeSingle();
+  if (p) { window.location.href = 'chat.html'; return; }
+  renderAvatarGrid();
+  goToStep('B');
 });
 
+// Profile setup
 document.getElementById('profile-form').addEventListener('submit', async e => {
   e.preventDefault();
-  const name   = document.getElementById('prof-name').value.trim();
-  const middle = document.getElementById('prof-middle').value.trim();
-  const sur    = document.getElementById('prof-surname').value.trim();
-  if (!name) return showError('Name is required.');
+  const name    = document.getElementById('prof-name').value.trim();
+  const middle  = document.getElementById('prof-middle').value.trim();
+  const surname = document.getElementById('prof-surname').value.trim();
+
+  if (!name)    return showError('First name is required.');
+  if (!surname) return showError('Surname is required.');
+
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return showError('Session expired. Please sign in again.');
+
   setBusy(true, 'profile-form');
+
+  // Upload photo if chosen
+  let avatarUrl = null;
+  if (regPhotoFile) {
+    const path = `${session.user.id}/${Date.now()}-${regPhotoFile.name}`;
+    const { error: upErr } = await sb.storage.from('avatars').upload(path, regPhotoFile);
+    if (!upErr) {
+      const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(path);
+      avatarUrl = publicUrl;
+    }
+  }
+
   const { error } = await sb.from('profiles').upsert({
-    id: session.user.id, name,
-    middle_name: middle || null,
-    surname:     sur    || null,
+    id:          session.user.id,
+    name,
+    middle_name: middle  || null,
+    surname,
     avatar_seed:  selSeed,
     avatar_style: selStyle,
+    avatar_url:   avatarUrl,
   });
+
   setBusy(false, 'profile-form');
   if (error) return showError(error.message);
   window.location.href = 'chat.html';
@@ -109,7 +145,7 @@ function setBusy(on, id) {
   const btn = document.querySelector(`#${id} button[type="submit"]`);
   if (!btn) return;
   if (on) { btn._o = btn.textContent; btn.textContent = 'Loading…'; btn.disabled = true; }
-  else    { btn.textContent = btn._o || ''; btn.disabled = false; }
+  else    { btn.textContent = btn._o||''; btn.disabled = false; }
 }
 
 (async () => {
