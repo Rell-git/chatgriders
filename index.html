@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatgrid</title>
+  <title>Pulseship</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#07070e">
+  <meta name="theme-color" content="#0d0d1a">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,15 +14,24 @@
 <div class="auth-card">
   <div class="auth-logo">
     <div class="logo-mark">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="white">
-        <rect x="1" y="1" width="9.5" height="9.5" rx="2"/>
-        <rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/>
-        <rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/>
-        <path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/>
+      <!-- Heartbeat logo -->
+      <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+        <path d="M20 34s-14-9-14-19a8 8 0 0116 0 8 8 0 0116 0c0 10-18 19-18 19z" fill="white" opacity=".95"/>
+        <polyline points="4,20 8,20 11,14 14,26 17,18 20,22 23,20 36,20" stroke="rgba(255,100,150,.9)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <h1>Chatgrid</h1>
-    <p>Connect with anyone</p>
+    <h1>Pulseship</h1>
+    <p>Find your connection</p>
+  </div>
+
+  <!-- Light/Dark toggle -->
+  <div class="auth-theme-row">
+    <span>🌙</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="auth-theme-toggle" onchange="toggleTheme(this)">
+      <div class="tgl-track"></div>
+    </label>
+    <span>☀️</span>
   </div>
 
   <div class="error-msg" id="error-msg"></div>
@@ -42,7 +51,7 @@
       <div class="form-group">
         <label>Password</label>
         <div class="pw-wrap">
-          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+          <input type="password" id="login-password" placeholder="••••••••" required>
           <button type="button" class="eye-btn" onclick="togglePw('login-password',this)" tabindex="-1">
             <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-closed" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
@@ -55,18 +64,18 @@
     <form id="register-form" style="display:none">
       <div class="form-group">
         <label>Email</label>
-        <input type="email" id="reg-email" placeholder="you@email.com" required autocomplete="email">
+        <input type="email" id="reg-email" placeholder="you@email.com" required>
       </div>
       <div class="form-group">
         <label>Password</label>
         <div class="pw-wrap">
-          <input type="password" id="reg-password" placeholder="Min 6 chars + 1 uppercase" required minlength="6">
+          <input type="password" id="reg-password" placeholder="Min 6 + 1 uppercase" required minlength="6">
           <button type="button" class="eye-btn" onclick="togglePw('reg-password',this)" tabindex="-1">
             <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-closed" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
         </div>
-        <div class="pw-hint">Needs at least one uppercase letter (A–Z)</div>
+        <div class="pw-hint">At least one uppercase letter (A–Z)</div>
       </div>
       <button type="submit" class="btn">Continue →</button>
     </form>
@@ -75,20 +84,18 @@
   <!-- STEP B: Avatar + Profile -->
   <div class="step" data-step="B">
     <div class="step-header">
-      <h2>Set Up Your Profile</h2>
-      <p>Pick an avatar and enter your details</p>
+      <h2>Your Profile</h2>
+      <p>Upload a photo or pick an avatar</p>
     </div>
-
     <form id="profile-form">
-      <!-- Profile photo upload -->
       <div class="photo-upload-group">
-        <label class="photo-upload-ring" id="photo-upload-ring" title="Upload photo">
+        <label class="photo-upload-ring" title="Upload photo">
           <input type="file" id="photo-file-reg" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
-          <img id="avatar-preview" src="" alt="avatar">
+          <img id="avatar-preview" src="" alt="">
           <div class="photo-upload-overlay">📷</div>
         </label>
-        <div class="avatar-grid" id="avatar-grid"></div>
       </div>
+      <div class="avatar-grid" id="avatar-grid"></div>
 
       <div class="form-group">
         <label>First Name *</label>
@@ -102,10 +109,9 @@
         <label>Surname *</label>
         <input type="text" id="prof-surname" placeholder="e.g. dela Cruz" required maxlength="40">
       </div>
-      <button type="submit" class="btn">Start Chatting ✦</button>
+      <button type="submit" class="btn">Start ✦</button>
     </form>
   </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
