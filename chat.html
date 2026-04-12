@@ -12,26 +12,25 @@
 </head>
 <body class="chat-page">
 
-<!-- ═══ NAV (World + Chats + avatar) ═══ -->
+<!-- ═════════ SIDE NAV (desktop) / BOTTOM NAV (mobile) ═════════ -->
 <nav class="nav-sidebar">
+  <!-- Logo: chatgrid icon with pulse on bottom-left rect -->
   <div class="nav-logo" onclick="switchPanel('world')">
-    <!-- Pulseship logo: chatgrid icon -->
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
       <rect x="1" y="1" width="9.5" height="9.5" rx="2"/>
       <rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/>
-      <rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/>
+      <rect x="1" y="13.5" width="9.5" height="9.5" rx="2" class="logo-pulse-rect"/>
       <path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/>
     </svg>
   </div>
 
   <div class="nav-items">
-    <!-- World Chat -->
+    <!-- World -->
     <button class="nav-btn active" data-panel="world" data-tip="World Chat" onclick="switchPanel('world')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
       <span class="nav-label">World</span>
     </button>
-
-    <!-- Chats (DM + Groups + Match all inside) -->
+    <!-- Chats -->
     <button class="nav-btn" data-panel="chats" data-tip="Chats" onclick="switchPanel('chats')">
       <div class="nav-badge-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -42,292 +41,399 @@
   </div>
 
   <div class="nav-bottom">
-    <!-- Avatar → profile/settings -->
-    <div class="nav-me" id="nav-me" onclick="switchPanel('settings')" title="Profile & Settings">
+    <!-- Toolbox -->
+    <button class="nav-icon-btn" onclick="toggleToolbox()" title="Tools">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    </button>
+    <!-- Settings gear -->
+    <button class="nav-icon-btn" onclick="openSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <!-- Avatar (profile shortcut) -->
+    <div class="nav-me" onclick="openSettings()" title="Profile">
       <img id="nav-avatar" src="" alt="me">
     </div>
     <div class="brand-tag">🕷 webzovvo</div>
   </div>
 </nav>
 
-<!-- ═══ PANELS ═══ -->
+<!-- ═════════ MAIN PANELS ═════════ -->
 <main class="main-content">
 
-  <!-- ── WORLD CHAT ── -->
+  <!-- WORLD CHAT -->
   <section class="panel active" id="world-panel">
     <div class="panel-hdr">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
+      <svg class="hdr-icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/></svg>
       <h2>World</h2>
       <div class="hdr-right">
         <div class="online-pill"><div class="dot-green"></div><span id="online-label">—</span></div>
-        <!-- Game icon -->
-        <button class="icon-btn" onclick="openDrawGame()" title="Draw Battle 🎨" id="game-btn">🎨</button>
-        <!-- PWA install -->
-        <button class="icon-btn" id="pwa-install-btn" style="display:none" onclick="installPWA()" title="Install App">↓</button>
+        <!-- Draw Battle button -->
+        <button class="icon-btn" onclick="openDrawGame()" title="Draw Battle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+        </button>
+        <button class="icon-btn" id="pwa-install-btn" style="display:none" onclick="installPWA()" title="Install App">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
       </div>
     </div>
     <div class="messages-area" id="world-msgs"><div class="spinner"></div></div>
     <div class="chat-footer">
       <div class="input-row">
-        <label class="attach-btn"><input type="file" id="world-img-input" accept="image/*" style="display:none" onchange="uploadWorldImage(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></label>
+        <label class="attach-btn" title="Send image">
+          <input type="file" id="world-img-input" accept="image/*" style="display:none" onchange="uploadWorldImage(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </label>
         <input type="text" id="world-input" placeholder="Say something to the world…" maxlength="500" autocomplete="off">
-        <button class="send-btn" onclick="sendWorld()"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg></button>
+        <button class="send-btn" onclick="sendWorld()">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+        </button>
       </div>
     </div>
   </section>
 
-  <!-- ── CHATS (DM list + Groups + Match) ── -->
+  <!-- CHATS (DM + Groups + Match tabs) -->
   <section class="panel" id="chats-panel">
-    <!-- Sub-tab bar -->
-    <div class="panel-hdr chats-hdr">
+    <!-- Sub-tab bar with action buttons -->
+    <div class="chats-hdr">
       <div class="chats-tabs">
-        <button class="ctab active" data-ctab="dm" onclick="switchChatsTab('dm')">Messages</button>
-        <button class="ctab" data-ctab="groups" onclick="switchChatsTab('groups')">Groups</button>
-        <button class="ctab" data-ctab="match" onclick="switchChatsTab('match')">Match 💕</button>
+        <button class="ctab active" data-ctab="dm"     onclick="switchChatsTab('dm')">Messages</button>
+        <button class="ctab"        data-ctab="groups" onclick="switchChatsTab('groups')">Groups</button>
+        <button class="ctab"        data-ctab="match"  onclick="switchChatsTab('match')">Match</button>
       </div>
-      <!-- Context actions per tab -->
-      <div class="hdr-right" id="chats-hdr-actions">
-        <button class="icon-btn" id="chats-add-btn" onclick="openAddModal()" title="Add contact">+</button>
-        <button class="icon-btn" id="chats-grp-btn" onclick="openCreateGroup()" title="Create group" style="display:none">👥</button>
+      <div class="chats-tab-actions">
+        <!-- Add contact (DM) -->
+        <button class="icon-btn ctab-action" id="act-add" onclick="openAddModal()" title="Add contact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <!-- Create group -->
+        <button class="icon-btn ctab-action" id="act-grp" onclick="openCreateGroup()" title="Create group" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </button>
       </div>
     </div>
 
-    <!-- DM sub-panel -->
+    <!-- DM list -->
     <div class="chats-sub active" id="chats-dm-sub">
-      <div class="convo-search"><input type="text" id="convo-search" placeholder="Search…" oninput="filterConvos(this.value)"></div>
+      <div class="convo-search"><input type="text" id="convo-search" placeholder="Search conversations…" oninput="filterConvos(this.value)"></div>
       <div class="convo-list" id="convo-list"><div class="spinner"></div></div>
     </div>
 
-    <!-- Groups sub-panel -->
+    <!-- Groups list -->
     <div class="chats-sub" id="chats-groups-sub">
       <div class="convo-list" id="group-list"><div class="spinner"></div></div>
     </div>
 
-    <!-- Match sub-panel -->
+    <!-- Match idle -->
     <div class="chats-sub" id="chats-match-sub">
-      <div class="match-idle" id="match-idle">
-        <div class="match-heart-big">💕</div>
+      <div class="match-idle">
+        <svg viewBox="0 0 24 24" fill="var(--accent)" width="56" height="56"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" class="heart-pulse-svg"/></svg>
         <h3>Find Someone New</h3>
-        <p>Chat anonymously for 2 minutes.<br>Press ❤️ at 60s if you like them!</p>
+        <p>Chat anonymously for 2 minutes.<br>Press ❤️ at 60s if you feel a connection!</p>
         <div class="match-rules">
-          <div class="rule-item">🎭 Anonymous — identity hidden</div>
-          <div class="rule-item">⏱ 2-minute session</div>
-          <div class="rule-item">❤️ Mutual heart → connect in DMs</div>
-          <div class="rule-item">🔟 Max 10 matches per day</div>
+          <div class="rule-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Anonymous — identity hidden</div>
+          <div class="rule-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 2-minute session</div>
+          <div class="rule-item"><svg viewBox="0 0 24 24" fill="var(--accent)" width="13" height="13"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Mutual heart → connect in DMs</div>
+          <div class="rule-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Max 10 matches per day</div>
         </div>
         <div id="match-daily-count" class="match-daily">— left today</div>
-        <button class="btn match-start-btn" id="match-start-btn" onclick="openMatchFullscreen()">Find a Match 💕</button>
+        <button class="btn match-start-btn" id="match-start-btn" onclick="openMatchFs()">Find a Match</button>
       </div>
     </div>
   </section>
 
-  <!-- ── THREAD (slides in over chats) ── -->
+  <!-- DM THREAD (slides in) -->
   <section class="panel" id="thread-panel">
-    <div id="thread-hdr" class="panel-hdr">
-      <button class="back-btn" onclick="closeThread()">‹</button>
-      <div class="convo-av sm" onclick="openProfilePage(activeUser)" style="cursor:pointer"><img id="thread-av" src="" alt=""></div>
-      <div onclick="openProfilePage(activeUser)" style="cursor:pointer;flex:1;min-width:0">
+    <div class="panel-hdr" id="thread-hdr">
+      <button class="back-btn" onclick="closeThread()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="convo-av sm" onclick="openProfileModal(activeUser)" style="cursor:pointer"><img id="thread-av" src="" alt=""></div>
+      <div onclick="openProfileModal(activeUser)" style="cursor:pointer;flex:1;min-width:0">
         <div id="thread-name" style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
         <div id="thread-typing" style="font-size:10px;color:var(--muted);min-height:13px"></div>
       </div>
-      <!-- Chat theme picker -->
-      <div class="thread-themes" id="thread-themes">
-        <div class="ct-dot" data-t="default" onclick="applyCtTheme('default')" style="background:var(--accent)"></div>
-        <div class="ct-dot" data-t="rose"    onclick="applyCtTheme('rose')"    style="background:#f43f5e"></div>
-        <div class="ct-dot" data-t="ocean"   onclick="applyCtTheme('ocean')"   style="background:#0284c7"></div>
-        <div class="ct-dot" data-t="forest"  onclick="applyCtTheme('forest')"  style="background:#16a34a"></div>
-        <div class="ct-dot" data-t="sunset"  onclick="applyCtTheme('sunset')"  style="background:#ea580c"></div>
-        <div class="ct-dot" data-t="night"   onclick="applyCtTheme('night')"   style="background:#4338ca"></div>
+      <!-- Chat theme dots -->
+      <div class="thread-theme-dots" id="thread-theme-dots">
+        <div class="ct-dot active" data-t="default" onclick="applyCtTheme('default')" title="Default" style="background:#7b6ef6"></div>
+        <div class="ct-dot" data-t="sakura"  onclick="applyCtTheme('sakura')"  title="Sakura"  style="background:#e879a8"></div>
+        <div class="ct-dot" data-t="ocean"   onclick="applyCtTheme('ocean')"   title="Ocean"   style="background:#0ea5e9"></div>
+        <div class="ct-dot" data-t="forest"  onclick="applyCtTheme('forest')"  title="Forest"  style="background:#22c55e"></div>
+        <div class="ct-dot" data-t="sunset"  onclick="applyCtTheme('sunset')"  title="Sunset"  style="background:#f97316"></div>
+        <div class="ct-dot" data-t="night"   onclick="applyCtTheme('night')"   title="Night"   style="background:#8b5cf6"></div>
       </div>
-      <button class="icon-btn" onclick="toggleDotMenu()" id="dot-btn">⋯</button>
+      <button class="icon-btn" onclick="toggleDotMenu()" id="dot-btn" title="More">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
       <div class="dot-menu" id="dot-menu" style="display:none">
-        <button onclick="openPoll()">📊 Poll</button>
-        <button onclick="openTradeModal()">🤝 Trade</button>
-        <button onclick="sendLocation()">📍 Location</button>
+        <button onclick="openPoll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+          Create Poll
+        </button>
+        <button onclick="openTradeModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Trade Offer
+        </button>
+        <button onclick="sendLocation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Share Location
+        </button>
       </div>
     </div>
     <div class="messages-area" id="thread-msgs" style="flex-direction:column"></div>
     <div class="chat-footer" id="thread-footer">
       <div id="seen-indicator" class="seen-bar" style="display:none"></div>
       <div class="input-row">
-        <label class="attach-btn"><input type="file" id="pm-img-input" accept="image/*" style="display:none" onchange="uploadPmImage(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></label>
+        <label class="attach-btn" title="Send image">
+          <input type="file" id="pm-img-input" accept="image/*" style="display:none" onchange="uploadPmImage(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </label>
         <input type="text" id="thread-input" placeholder="Message…" maxlength="500" autocomplete="off">
-        <button class="send-btn" onclick="sendPrivate()"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg></button>
+        <button class="send-btn" onclick="sendPrivate()">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+        </button>
       </div>
     </div>
   </section>
 
-  <!-- ── GROUP THREAD ── -->
+  <!-- GROUP THREAD -->
   <section class="panel" id="group-thread-panel">
     <div class="panel-hdr">
-      <button class="back-btn" onclick="closeGroupThread()">‹</button>
+      <button class="back-btn" onclick="closeGroupThread()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
       <div id="group-thread-name" style="font-weight:700;font-size:14px;flex:1"></div>
       <div class="hdr-right"><button class="icon-btn" onclick="openGroupInfo()">Info</button></div>
     </div>
     <div class="messages-area" id="group-msgs" style="flex-direction:column"></div>
     <div class="chat-footer" id="group-footer">
       <div class="input-row">
-        <label class="attach-btn"><input type="file" id="grp-img-input" accept="image/*" style="display:none" onchange="uploadGrpImage(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></label>
+        <label class="attach-btn">
+          <input type="file" id="grp-img-input" accept="image/*" style="display:none" onchange="uploadGrpImage(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </label>
         <input type="text" id="group-input" placeholder="Message group…" maxlength="500" autocomplete="off">
-        <button class="send-btn" onclick="sendGroup()"><svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg></button>
+        <button class="send-btn" onclick="sendGroup()">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+        </button>
       </div>
-    </div>
-  </section>
-
-  <!-- ── PROFILE / SETTINGS ── -->
-  <section class="panel" id="settings-panel">
-    <div class="panel-hdr" id="settings-hdr">
-      <button class="back-btn" onclick="closeSettings()" style="display:none" id="settings-back">‹</button>
-      <h2 id="settings-title">Profile</h2>
-    </div>
-
-    <!-- Profile view (default) -->
-    <div class="profile-scroll" id="settings-content">
-
-      <!-- My profile card -->
-      <div id="pv-section">
-        <div class="pv-hero" id="pv-hero">
-          <div class="pv-avatar-wrap">
-            <div class="avatar-border-ring" id="pv-border-ring">
-              <img id="pv-avatar" src="" alt="" style="width:90px;height:90px">
-            </div>
-          </div>
-          <div class="pv-code" id="pv-code"></div>
-          <div class="pv-nameline"><span id="pv-name">—</span><span id="pv-badge"></span></div>
-          <div class="pv-bio" id="pv-bio"></div>
-          <div class="pv-types" id="pv-types"></div>
-
-          <!-- Posts -->
-          <div class="post-composer">
-            <textarea id="post-input" placeholder="What's on your mind?" maxlength="1000" rows="2"></textarea>
-            <div class="post-composer-row">
-              <label class="attach-btn" style="color:var(--muted)"><input type="file" id="post-img-input" accept="image/*" style="display:none" onchange="setPostImage(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></label>
-              <span id="post-img-label" style="font-size:11px;color:var(--muted);flex:1"></span>
-              <button class="btn-accent-sm" onclick="submitPost()">Post</button>
-            </div>
-          </div>
-          <div class="posts-feed" id="my-posts"><div class="spinner"></div></div>
-        </div>
-
-        <!-- Settings menu list -->
-        <div class="settings-section">
-          <div class="settings-group-title">Account</div>
-          <div class="settings-row" onclick="openEditProfile()">
-            <span class="sr-icon">✏️</span><span class="sr-label">Edit Profile</span><span class="sr-arr">›</span>
-          </div>
-          <div class="settings-row" onclick="openNotifSettings()">
-            <span class="sr-icon">🔔</span><span class="sr-label">Notifications</span><span class="sr-arr">›</span>
-          </div>
-          <div class="settings-row" onclick="openShareProfile()">
-            <span class="sr-icon">🔗</span><span class="sr-label">Share Profile</span><span class="sr-arr">›</span>
-          </div>
-          <div class="settings-row" onclick="toggleTheme()">
-            <span class="sr-icon" id="theme-icon">☀️</span><span class="sr-label" id="theme-label">Switch to Light</span>
-          </div>
-
-          <div class="settings-group-title" style="margin-top:14px">Info</div>
-          <div class="settings-row" onclick="openHelp()">
-            <span class="sr-icon">❓</span><span class="sr-label">Help Center</span><span class="sr-arr">›</span>
-          </div>
-          <div class="settings-row" onclick="openPrivacy()">
-            <span class="sr-icon">🔒</span><span class="sr-label">Privacy Center</span><span class="sr-arr">›</span>
-          </div>
-          <div class="settings-row" onclick="openPolicy()">
-            <span class="sr-icon">📋</span><span class="sr-label">Privacy Policy</span><span class="sr-arr">›</span>
-          </div>
-
-          <div class="settings-group-title" style="margin-top:14px">Session</div>
-          <div class="settings-row" onclick="doLogout()">
-            <span class="sr-icon">🔄</span><span class="sr-label">Sign Out / Switch Account</span><span class="sr-arr">›</span>
-          </div>
-          <div class="settings-row danger" onclick="confirmDeleteAccount()">
-            <span class="sr-icon">🗑</span><span class="sr-label">Delete Account</span><span class="sr-arr">›</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stalk view (someone else) -->
-      <div id="stalk-section" style="display:none">
-        <div class="pv-hero">
-          <div class="pv-avatar-wrap">
-            <div class="avatar-border-ring" id="stalk-border-ring">
-              <img id="stalk-avatar" src="" alt="" style="width:90px;height:90px;border-radius:50%;object-fit:cover">
-            </div>
-          </div>
-          <div class="pv-code" id="stalk-code"></div>
-          <div class="pv-nameline"><span id="stalk-name"></span><span id="stalk-badge"></span></div>
-          <div class="pv-bio" id="stalk-bio"></div>
-          <div class="pv-types" id="stalk-types"></div>
-          <button class="btn" style="max-width:220px;margin:14px auto 0" onclick="messageFromProfile()">💬 Message</button>
-        </div>
-        <div class="stalk-posts" id="stalk-posts"></div>
-      </div>
-
-      <!-- Edit Profile (sub-page) -->
-      <div id="edit-section" style="display:none">
-        <div class="edit-avatar-hero">
-          <label class="edit-av-ring" title="Tap to change photo">
-            <input type="file" id="edit-photo-input" accept="image/*" style="display:none" onchange="uploadEditPhoto(this)">
-            <img id="edit-avatar-preview" src="" alt="">
-            <div class="pv-cam-overlay">📷</div>
-          </label>
-        </div>
-        <div class="avatar-grid-sm" id="edit-avatar-grid"></div>
-
-        <div class="profile-wrap">
-          <div class="form-group">
-            <label>Name * <span class="optional" id="name-change-hint"></span></label>
-            <input type="text" id="edit-name" maxlength="40">
-          </div>
-          <div class="form-group">
-            <label>Middle Name <span class="optional">(optional)</span></label>
-            <input type="text" id="edit-middle" maxlength="40">
-          </div>
-          <div class="form-group">
-            <label>Surname *</label>
-            <input type="text" id="edit-surname" maxlength="40">
-          </div>
-          <div class="form-group">
-            <label>Bio <span class="optional">(links ok)</span></label>
-            <textarea id="edit-bio" maxlength="300" placeholder="Write something or paste a link…" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label>I'm into <span class="optional">(pick up to 3)</span></label>
-            <div class="type-chips" id="edit-types"></div>
-          </div>
-          <button class="btn" onclick="saveProfile()">Save Changes</button>
-        </div>
-      </div>
-
     </div>
   </section>
 
 </main>
 
-<!-- ═══════════ FULLSCREEN MATCH ═══════════ -->
-<div class="match-fs" id="match-fs" style="display:none">
-  <!-- Waiting state -->
-  <div class="match-fs-waiting" id="match-fs-waiting">
-    <button class="mfs-close" onclick="cancelMatch()">✕</button>
-    <div class="mfs-av" id="mfs-my-av">
-      <img id="mfs-avatar" src="" alt="">
+<!-- ═════════ FULLSCREEN SETTINGS ═════════ -->
+<div class="settings-fs" id="settings-fs" style="display:none">
+  <!-- Stack of pages -->
+  <div class="spage active" id="sp-main">
+    <div class="spage-hdr">
+      <button class="spage-close" onclick="closeSettings()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <h2>Settings</h2>
     </div>
+    <!-- Profile card -->
+    <div class="settings-profile-card">
+      <div class="spc-av-wrap">
+        <div class="avatar-border-ring" id="spc-border-ring">
+          <label title="Change photo">
+            <input type="file" id="spc-photo-input" accept="image/*" style="display:none" onchange="quickPhotoUpload(this)">
+            <img id="spc-avatar" src="" alt="">
+            <div class="pv-cam-overlay">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="spc-info">
+        <div class="spc-name" id="spc-name"></div>
+        <div class="spc-code" id="spc-code"></div>
+        <div class="spc-bio" id="spc-bio"></div>
+      </div>
+    </div>
+
+    <!-- Settings list -->
+    <div class="settings-list">
+      <div class="sl-section">Account</div>
+      <button class="sl-row" onclick="openSPage('sp-edit-profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        <span>Edit Profile</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="sl-row" onclick="openSPage('sp-notifications')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Notifications</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="sl-row" onclick="openSPage('sp-share')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span>Share Profile</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="sl-row" onclick="toggleTheme()">
+        <svg id="sl-theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span id="sl-theme-label">Switch to Light Mode</span>
+      </button>
+      <button class="sl-row" onclick="openSPage('sp-report')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span>Report a Problem</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
+      <div class="sl-section">Privacy &amp; Safety</div>
+      <button class="sl-row" onclick="openSPage('sp-privacy-center')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Privacy Center</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="sl-row" onclick="openSPage('sp-privacy-policy')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Privacy Policy</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
+      <div class="sl-section">Support &amp; About</div>
+      <button class="sl-row" onclick="openSPage('sp-help')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Help Center</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="sl-row" onclick="openSPage('sp-about')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>About Pulseship</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
+      <div class="sl-section">Session</div>
+      <button class="sl-row" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sign Out / Switch Account</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="sl-row danger" onclick="confirmDeleteAccount()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        <span>Delete Account</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- SUB-PAGES -->
+  <!-- Edit Profile -->
+  <div class="spage" id="sp-edit-profile">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Edit Profile</h2><button class="btn-sm" onclick="saveProfile()" style="margin-left:auto">Save</button></div>
+    <div class="spage-body">
+      <div class="edit-av-center">
+        <label class="edit-av-ring"><input type="file" id="edit-photo-input" accept="image/*" style="display:none" onchange="uploadEditPhoto(this)"><img id="edit-avatar-preview" src="" alt=""><div class="pv-cam-overlay"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div></label>
+      </div>
+      <div class="avatar-grid-sm" id="edit-avatar-grid"></div>
+      <div class="form-group"><label>First Name * <span class="optional" id="name-change-hint"></span></label><input type="text" id="edit-name" maxlength="40"></div>
+      <div class="form-group"><label>Middle Name <span class="optional">(optional)</span></label><input type="text" id="edit-middle" maxlength="40"></div>
+      <div class="form-group"><label>Surname *</label><input type="text" id="edit-surname" maxlength="40"></div>
+      <div class="form-group"><label>Bio <span class="optional">(links ok)</span></label><textarea id="edit-bio" maxlength="300" placeholder="Write something or paste a link…" rows="3"></textarea></div>
+      <div class="form-group"><label>I'm into <span class="optional">(pick up to 3)</span></label><div class="type-chips" id="edit-types"></div></div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="spage" id="sp-notifications">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Notifications</h2></div>
+    <div class="spage-body notif-body">
+      <div class="notif-status" id="notif-status">Checking permission…</div>
+      <button class="btn" onclick="requestNotifPermission()" id="notif-btn" style="margin-top:14px">Enable Notifications</button>
+      <div class="notif-info">
+        <p>When enabled, you'll receive alerts for new messages even when the app is in the background or closed (on supported browsers).</p>
+        <p>On iOS: Install Pulseship as a PWA (Add to Home Screen) first, then enable notifications.</p>
+        <p>To disable: Go to your browser/device Settings → Notifications → Pulseship.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Profile -->
+  <div class="spage" id="sp-share">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Share Profile</h2></div>
+    <div class="spage-body" style="text-align:center">
+      <div id="share-qr-container" style="margin:20px auto;display:inline-block"></div>
+      <div class="share-code" id="share-code-display"></div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Others can scan this QR or enter your code to find you.</p>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn-accent-sm" onclick="copyProfileCode()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy Code
+        </button>
+        <button class="btn-accent-sm" onclick="downloadQR()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Save QR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report -->
+  <div class="spage" id="sp-report">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Report a Problem</h2></div>
+    <div class="spage-body">
+      <div class="form-group"><label>Type</label><select id="report-type"><option>Bug / Technical issue</option><option>Harassment / Abuse</option><option>Spam</option><option>Inappropriate content</option><option>Other</option></select></div>
+      <div class="form-group"><label>Description</label><textarea id="report-desc" maxlength="500" placeholder="Describe the issue…" rows="5"></textarea></div>
+      <button class="btn" onclick="submitReport()">Send Report</button>
+    </div>
+  </div>
+
+  <!-- Privacy Center -->
+  <div class="spage" id="sp-privacy-center">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Privacy Center</h2></div>
+    <div class="spage-body legal-body" id="sp-privacy-center-body"></div>
+  </div>
+
+  <!-- Privacy Policy -->
+  <div class="spage" id="sp-privacy-policy">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Privacy Policy</h2></div>
+    <div class="spage-body legal-body" id="sp-privacy-policy-body"></div>
+  </div>
+
+  <!-- Help Center -->
+  <div class="spage" id="sp-help">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Help Center</h2></div>
+    <div class="spage-body legal-body" id="sp-help-body"></div>
+  </div>
+
+  <!-- About -->
+  <div class="spage" id="sp-about">
+    <div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>About Pulseship</h2></div>
+    <div class="spage-body" style="text-align:center;padding:30px 20px">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--accent),#a78bfa);border-radius:18px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px var(--glow)">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="white"><rect x="1" y="1" width="9.5" height="9.5" rx="2"/><rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/><rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/><path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/></svg>
+      </div>
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:4px">Pulseship</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px">v1.0.0 · by 🕷 webzovvo</p>
+      <p style="font-size:13px;line-height:1.7;color:var(--muted)">Real-time chat platform with World Chat, Private Messages, Group Chat, Anonymous Matching, and more. Built with Supabase + vanilla JS, deployed on Netlify.</p>
+      <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)">
+        <p>Contact: <a href="mailto:webzovvo@gmail.com" class="chat-link">webzovvo@gmail.com</a></p>
+        <p>Admin: User #000111</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ FULLSCREEN MATCH ═════════ -->
+<div class="match-fs" id="match-fs" style="display:none">
+  <div class="match-fs-waiting" id="match-fs-waiting">
+    <button class="mfs-close" onclick="cancelMatch()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="mfs-av"><img id="mfs-avatar" src="" alt=""></div>
     <div class="mfs-pulse"></div>
     <h3>Finding your match…</h3>
     <p>Stay here, we'll connect you soon!</p>
     <div id="mfs-daily" class="match-daily" style="margin-top:10px"></div>
   </div>
-
-  <!-- Chat state -->
   <div class="match-fs-chat" id="match-fs-chat" style="display:none">
     <div class="match-chat-hdr">
-      <div class="anon-dot">🎭</div>
-      <div style="flex:1">
-        <div class="match-name">Anonymous</div>
-        <div id="match-timer-text" class="match-timer">2:00</div>
+      <div class="anon-av-sm">
+        <svg viewBox="0 0 24 24" fill="var(--accent)" width="30" height="30"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </div>
+      <div style="flex:1"><div class="match-name">Anonymous</div><div id="match-timer-text" class="match-timer">2:00</div></div>
       <button class="heart-btn" id="heart-btn" onclick="pressHeart()" style="display:none">❤️</button>
-      <button class="icon-btn danger" onclick="endMatch()" style="margin-left:6px">✕</button>
+      <button class="icon-btn" onclick="endMatch()" style="margin-left:6px;background:rgba(240,68,68,.1);border-color:var(--danger);color:var(--danger)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="messages-area" id="anon-msgs" style="flex-direction:column"></div>
     <div class="chat-footer">
@@ -337,68 +443,134 @@
       </div>
     </div>
   </div>
-
-  <!-- Ended state -->
   <div class="match-fs-ended" id="match-fs-ended" style="display:none">
     <div class="ended-icon" id="ended-icon">⏱</div>
     <h3 id="ended-title">Time's up!</h3>
     <p id="ended-msg">Session ended.</p>
-    <button class="btn match-start-btn" style="margin-top:14px" onclick="resetMatch()">Try Again 💕</button>
+    <button class="btn" style="margin-top:14px;max-width:240px" onclick="resetMatch()">Try Again</button>
     <button class="btn-ghost-sm" onclick="closeMatchFs()" style="margin-top:8px">Close</button>
   </div>
 </div>
 
-<!-- ═══════════ DRAW GAME MODAL ═══════════ -->
-<div class="game-modal" id="game-modal" style="display:none">
-  <div class="game-modal-inner" id="game-modal-inner">
-    <div class="game-modal-hdr" id="game-drag-hdr">
-      <span>🎨 Draw Battle</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="icon-btn" onclick="clearMyStrokes()" title="Clear my drawing">🗑</button>
-        <button class="icon-btn" onclick="toggleGameFs()" title="Fullscreen">⛶</button>
-        <button class="icon-btn" onclick="closeDrawGame()" title="Close">✕</button>
-      </div>
+<!-- ═════════ TOOLBOX (floating, draggable) ═════════ -->
+<div class="toolbox" id="toolbox" style="display:none">
+  <div class="toolbox-hdr" id="toolbox-drag-hdr">
+    <div class="toolbox-tabs">
+      <button class="tbtn active" onclick="switchTool('calc')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
+        Calc
+      </button>
+      <button class="tbtn" onclick="switchTool('translate')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+        Translate
+      </button>
     </div>
-    <div class="game-tools">
-      <div class="color-dots" id="color-dots"></div>
-      <input type="range" id="brush-size" min="2" max="30" value="5" style="width:80px">
-      <button class="tool-btn" id="eraser-btn" onclick="toggleEraser()">⬜ Eraser</button>
+    <div style="display:flex;gap:4px">
+      <button class="tbtn-ctrl" onclick="minimizeToolbox()" title="Minimize">—</button>
+      <button class="tbtn-ctrl" onclick="document.getElementById('toolbox').style.display='none'" title="Close">✕</button>
     </div>
-    <canvas id="draw-canvas" style="display:block;width:100%;touch-action:none;cursor:crosshair"></canvas>
-    <div class="game-footer-bar">
-      <span id="draw-players" style="font-size:11px;color:var(--muted)">— online</span>
+  </div>
+
+  <!-- Calculator -->
+  <div class="tool-panel active" id="tool-calc">
+    <div class="calc-display" id="calc-display">0</div>
+    <div class="calc-history" id="calc-history"></div>
+    <div class="calc-grid">
+      <button class="calc-btn fn" onclick="calcAction('clear')">C</button>
+      <button class="calc-btn fn" onclick="calcAction('sign')">+/−</button>
+      <button class="calc-btn fn" onclick="calcAction('percent')">%</button>
+      <button class="calc-btn op" onclick="calcAction('÷')">÷</button>
+      <button class="calc-btn" onclick="calcAction('7')">7</button>
+      <button class="calc-btn" onclick="calcAction('8')">8</button>
+      <button class="calc-btn" onclick="calcAction('9')">9</button>
+      <button class="calc-btn op" onclick="calcAction('×')">×</button>
+      <button class="calc-btn" onclick="calcAction('4')">4</button>
+      <button class="calc-btn" onclick="calcAction('5')">5</button>
+      <button class="calc-btn" onclick="calcAction('6')">6</button>
+      <button class="calc-btn op" onclick="calcAction('−')">−</button>
+      <button class="calc-btn" onclick="calcAction('1')">1</button>
+      <button class="calc-btn" onclick="calcAction('2')">2</button>
+      <button class="calc-btn" onclick="calcAction('3')">3</button>
+      <button class="calc-btn op" onclick="calcAction('+')">+</button>
+      <button class="calc-btn zero" onclick="calcAction('0')">0</button>
+      <button class="calc-btn" onclick="calcAction('.')">.</button>
+      <button class="calc-btn op eq" onclick="calcAction('=')">=</button>
+    </div>
+  </div>
+
+  <!-- Translator -->
+  <div class="tool-panel" id="tool-translate">
+    <div class="tl-row">
+      <select id="tl-from" class="tl-select"><option value="en">English</option><option value="tl">Filipino</option><option value="ja">Japanese</option><option value="ko">Korean</option><option value="zh">Chinese</option><option value="es">Spanish</option><option value="fr">French</option><option value="de">German</option><option value="ar">Arabic</option><option value="hi">Hindi</option></select>
+      <button class="tbtn-ctrl" onclick="swapLangs()">⇄</button>
+      <select id="tl-to"   class="tl-select"><option value="tl">Filipino</option><option value="en">English</option><option value="ja">Japanese</option><option value="ko">Korean</option><option value="zh">Chinese</option><option value="es">Spanish</option><option value="fr">French</option><option value="de">German</option><option value="ar">Arabic</option><option value="hi">Hindi</option></select>
+    </div>
+    <textarea id="tl-input"  class="tl-area" placeholder="Enter text…" rows="3" oninput="translateDebounce()"></textarea>
+    <div class="tl-out" id="tl-output">Translation will appear here</div>
+    <button class="btn-accent-sm" onclick="copyTranslation()" style="margin-top:6px;width:100%">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy
+    </button>
+  </div>
+</div>
+
+<!-- ═════════ MODALS ═════════ -->
+
+<!-- Add contact (with QR scan option) -->
+<div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal-box">
+    <div class="modal-hdr"><h3>Add Contact</h3><button class="modal-close" onclick="closeAddModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="add-tabs" style="display:flex;gap:6px;margin-bottom:12px">
+      <button class="ctab active" style="flex:1" onclick="switchAddTab('code')">Enter Code</button>
+      <button class="ctab" style="flex:1" onclick="switchAddTab('scan')">Scan QR</button>
+    </div>
+    <div id="add-tab-code">
+      <p class="modal-sub">Enter their user code</p>
+      <div class="form-group" style="margin-bottom:10px"><div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="add-code-input" placeholder="000001" maxlength="6" inputmode="numeric"></div></div>
+      <div id="add-result"></div>
+      <button class="btn" onclick="searchByCode()">Search</button>
+    </div>
+    <div id="add-tab-scan" style="display:none">
+      <p class="modal-sub">Scan a Pulseship QR code</p>
+      <div id="qr-reader" style="width:100%;border-radius:10px;overflow:hidden"></div>
+      <div id="qr-scan-result" style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center"></div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════ MODALS ═══════════ -->
-
-<!-- Add contact -->
-<div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal-box">
-    <div class="modal-hdr"><h3>Add Contact</h3><button class="modal-close" onclick="document.getElementById('add-modal').style.display='none'">✕</button></div>
-    <p class="modal-sub">Enter their user code</p>
-    <div class="form-group" style="margin-bottom:10px"><div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="add-code-input" placeholder="000001" maxlength="6" inputmode="numeric"></div></div>
-    <div id="add-result"></div>
-    <button class="btn" onclick="searchByCode()">Search</button>
+<!-- Profile stalk modal -->
+<div class="modal-overlay" id="profile-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box stalk-modal-box">
+    <button class="modal-close" onclick="document.getElementById('profile-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="stalk-av-center">
+      <div class="avatar-border-ring sm-border-ring border-ring-none" id="sm-border-ring">
+        <img id="sm-avatar" src="" alt="" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:block">
+      </div>
+    </div>
+    <div class="stalk-code" id="sm-code"></div>
+    <div class="stalk-nameline"><span id="sm-name"></span><span id="sm-badge"></span></div>
+    <div class="stalk-bio" id="sm-bio"></div>
+    <div class="stalk-types" id="sm-types"></div>
+    <div class="stalk-posts-scroll" id="sm-posts"></div>
+    <button class="btn" style="margin-top:12px" onclick="messageFromModal()">Send Message</button>
   </div>
 </div>
 
 <!-- Create group -->
 <div class="modal-overlay" id="create-group-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal-box">
-    <div class="modal-hdr"><h3>Create Group</h3><button class="modal-close" onclick="document.getElementById('create-group-modal').style.display='none'">✕</button></div>
-    <div class="form-group"><label>Group Name *</label><input type="text" id="group-name-input" placeholder="e.g. Squad 🔥" maxlength="40"></div>
-    <div class="form-group"><label>Members <span class="optional">(codes, comma sep.)</span></label><input type="text" id="group-members-input" placeholder="000002, 000003…"></div>
-    <button class="btn" onclick="createGroup()">Create</button>
+    <div class="modal-hdr"><h3>Create Group</h3><button class="modal-close" onclick="document.getElementById('create-group-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="form-group"><label>Group Name *</label><input type="text" id="group-name-input" placeholder="e.g. Squad" maxlength="40"></div>
+    <div class="form-group"><label>Members <span class="optional">(codes, comma separated)</span></label><input type="text" id="group-members-input" placeholder="000002, 000003…"></div>
+    <button class="btn" onclick="createGroup()">Create Group</button>
   </div>
 </div>
 
 <!-- Group info -->
 <div class="modal-overlay" id="group-info-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal-box">
-    <div class="modal-hdr"><h3 id="group-info-name"></h3><button class="modal-close" onclick="document.getElementById('group-info-modal').style.display='none'">✕</button></div>
-    <div class="form-group" style="margin-top:10px"><label>Add Member (#code)</label><div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="add-member-code" placeholder="000001" maxlength="6" inputmode="numeric"></div></div>
+    <div class="modal-hdr"><h3 id="group-info-name"></h3><button class="modal-close" onclick="document.getElementById('group-info-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="form-group" style="margin-top:10px"><label>Add Member</label><div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="add-member-code" placeholder="000001" maxlength="6" inputmode="numeric"></div></div>
     <button class="btn" onclick="addGroupMember()" style="margin-bottom:12px">Add</button>
     <div id="group-member-list"></div>
   </div>
@@ -407,10 +579,11 @@
 <!-- Trade -->
 <div class="modal-overlay" id="trade-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal-box">
-    <div class="modal-hdr"><h3>🤝 Trade Offer</h3><button class="modal-close" onclick="document.getElementById('trade-modal').style.display='none'">✕</button></div>
-    <p class="modal-sub" id="trade-to-label">Sending to…</p>
+    <div class="modal-hdr"><h3>Trade Offer</h3><button class="modal-close" onclick="document.getElementById('trade-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <p class="modal-sub" id="trade-to-label">To: …</p>
+    <div class="form-group"><label>Offer Image <span class="optional">(optional)</span></label><label class="img-file-label"><input type="file" id="trade-img-input" accept="image/*" style="display:none" onchange="setTradeImage(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> <span id="trade-img-name">Choose image…</span></label></div>
     <div class="trade-table">
-      <div class="trade-col"><div class="trade-col-hdr">I Offer</div><textarea id="trade-offer" placeholder="What you offer…" maxlength="200" rows="3"></textarea></div>
+      <div class="trade-col"><div class="trade-col-hdr">I Offer</div><textarea id="trade-offer" placeholder="What you're offering…" maxlength="200" rows="3"></textarea></div>
       <div class="trade-arrow">⇄</div>
       <div class="trade-col"><div class="trade-col-hdr">I Want</div><textarea id="trade-want" placeholder="What you want…" maxlength="200" rows="3"></textarea></div>
     </div>
@@ -422,33 +595,23 @@
 <!-- Poll -->
 <div class="modal-overlay" id="poll-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal-box">
-    <div class="modal-hdr"><h3>📊 Create Poll</h3><button class="modal-close" onclick="document.getElementById('poll-modal').style.display='none'">✕</button></div>
+    <div class="modal-hdr"><h3>Create Poll</h3><button class="modal-close" onclick="document.getElementById('poll-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="form-group"><label>Question *</label><input type="text" id="poll-question" placeholder="Ask something…" maxlength="200"></div>
     <div id="poll-options-wrap">
       <div class="form-group"><label>Option 1</label><input type="text" class="poll-opt" placeholder="Option 1" maxlength="100"></div>
       <div class="form-group"><label>Option 2</label><input type="text" class="poll-opt" placeholder="Option 2" maxlength="100"></div>
     </div>
-    <button class="btn-ghost-sm" onclick="addPollOption()">+ Add option</button>
-    <button class="btn" onclick="submitPoll()" style="margin-top:10px">Post Poll</button>
-  </div>
-</div>
-
-<!-- Share profile -->
-<div class="modal-overlay" id="share-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal-box" style="text-align:center">
-    <div class="modal-hdr" style="justify-content:center"><h3>Share Profile</h3><button class="modal-close" onclick="document.getElementById('share-modal').style.display='none'">✕</button></div>
-    <div id="share-qr" style="margin:14px auto;width:160px;height:160px;background:var(--sur2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)">QR code</div>
-    <div id="share-code" style="font-size:22px;font-weight:800;letter-spacing:.1em;color:var(--accent);margin:10px 0"></div>
-    <button class="btn-accent-sm" onclick="copyProfileCode()">Copy Code</button>
+    <button class="btn-ghost-sm" onclick="addPollOption()" style="margin-bottom:8px">+ Add option</button>
+    <button class="btn" onclick="submitPoll()">Post Poll</button>
   </div>
 </div>
 
 <!-- Delete account -->
 <div class="modal-overlay" id="delete-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal-box">
-    <div class="modal-hdr"><h3 style="color:var(--danger)">⚠️ Delete Account</h3><button class="modal-close" onclick="document.getElementById('delete-modal').style.display='none'">✕</button></div>
+    <div class="modal-hdr"><h3 style="color:var(--danger)">Delete Account</h3><button class="modal-close" onclick="document.getElementById('delete-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <p style="font-size:13px;color:var(--muted);margin-bottom:12px">This is permanent. All your data will be deleted. Type your <strong>full name</strong> to confirm:</p>
-    <div class="form-group"><input type="text" id="delete-confirm-input" placeholder="Type your name…"></div>
+    <div class="form-group"><input type="text" id="delete-confirm-input" placeholder="Type your full name…"></div>
     <div id="delete-error" style="font-size:12px;color:var(--danger);margin-bottom:8px;display:none"></div>
     <button class="btn" style="background:var(--danger)" onclick="deleteAccount()">Delete My Account</button>
   </div>
@@ -456,35 +619,65 @@
 
 <!-- Context menu -->
 <div class="ctx-menu" id="ctx-menu" style="display:none">
-  <button id="ctx-delete-btn" onclick="deleteCtxMsg()">🗑 Delete</button>
-  <button onclick="document.getElementById('ctx-menu').style.display='none'">Cancel</button>
+  <button id="ctx-delete-btn" onclick="deleteCtxMsg()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    Delete
+  </button>
+  <button onclick="document.getElementById('ctx-menu').style.display='none'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    Cancel
+  </button>
 </div>
 
-<!-- Stalk profile modal (click name/avatar anywhere) -->
-<div class="modal-overlay" id="stalk-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal-box stalk-modal-box">
-    <button class="modal-close" onclick="document.getElementById('stalk-modal').style.display='none'">✕</button>
+<!-- ═════════ DRAW BATTLE MODAL ═════════ -->
+<div class="game-modal" id="game-modal" style="display:none">
+  <div class="game-modal-inner" id="game-modal-inner">
 
-    <!-- 3D animated border ring -->
-    <div class="stalk-av-center">
-      <div class="avatar-border-ring sm-border-ring border-ring-none" id="sm-border-ring">
-        <img id="sm-avatar" src="" alt="" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:block">
+    <div class="game-modal-hdr" id="game-drag-hdr">
+      <span>Draw Battle</span>
+      <div>
+        <button class="icon-btn" onclick="clearMyStrokes()" title="Clear my drawing" style="width:26px;height:26px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+        <button class="icon-btn" onclick="toggleGameFs()" title="Fullscreen" style="width:26px;height:26px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </button>
+        <button class="icon-btn" onclick="closeDrawGame()" title="Close" style="width:26px;height:26px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
     </div>
 
-    <div class="stalk-code" id="sm-code"></div>
-    <div class="stalk-nameline">
-      <span id="sm-name"></span>
-      <span id="sm-badge"></span>
+    <!-- Prompt banner -->
+    <div class="draw-prompt-banner">
+      <div>
+        <div class="draw-prompt-label">Draw this:</div>
+        <div class="draw-prompt-word" id="draw-prompt-word">Loading…</div>
+      </div>
+      <button class="draw-new-prompt-btn" onclick="newDrawPrompt()">New prompt</button>
     </div>
-    <div class="stalk-bio" id="sm-bio"></div>
-    <div class="stalk-types" id="sm-types"></div>
-    <div class="stalk-posts-scroll" id="sm-posts"></div>
-    <button class="btn" style="margin-top:12px" onclick="messageFromProfile()">💬 Send Message</button>
+
+    <div class="game-tools">
+      <div class="color-dots" id="draw-color-dots"></div>
+      <input type="range" id="brush-size" min="2" max="28" value="5" style="width:70px;accent-color:var(--accent)">
+      <button class="tool-btn" id="eraser-btn" onclick="toggleEraser()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6.0003 17.9997L10 14"/></svg>
+        Eraser
+      </button>
+    </div>
+
+    <canvas id="draw-canvas" style="display:block;width:100%;touch-action:none;cursor:crosshair;background:#fff"></canvas>
+
+    <div class="game-footer-bar">
+      <span id="draw-online" style="font-size:11px;color:var(--muted)">— online</span>
+      <span style="font-size:10px;color:var(--muted)">All players see the same canvas</span>
+    </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="config.js"></script>
 <script src="chat.js"></script>
 </body>
