@@ -10,7 +10,7 @@ let typingCh=null, typingTimeout=null;
 let leaderboardTimer=null, anonMatchId=null, anonSlot=null, anonTimer=null;
 let anonSub=null, anonQueueSub=null, anonHeartShown=false, myHeartPressed=false, anonMatchesLeft=10;
 let qrInstance=null, html5QrScanner=null, tradeImageFile=null;
-let calcValue='0', calcPrev='', calcOp='', calcReset=false, tlTimer=null;
+    let calcValue='0', calcPrev='', calcOp='', calcReset=false;
 // Draw Battle solo
 let soloCanvas=null, soloCtx=null, drawIsDrawing=false;
 let drawColor='#7b6ef6', drawSize=5, drawEraser=false, drawFsMode=false;
