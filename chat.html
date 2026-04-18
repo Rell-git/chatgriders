@@ -42,6 +42,11 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="11" r="1"/><circle cx="19" cy="13" r="1"/></svg>
       <span class="nav-label">Games</span>
     </button>
+    <!-- Rank -->
+    <button class="nav-btn" data-panel="rank" data-tip="Rankings" onclick="switchPanel('rank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+      <span class="nav-label">Rank</span>
+    </button>
   </div>
 
   <div class="nav-bottom">
@@ -80,6 +85,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         </label>
         <input type="text" id="world-input" placeholder="Say something to the world…" maxlength="500" autocomplete="off">
+        <!-- Brainly ask button -->
+        <button class="icon-btn" onclick="openBrainlyModal()" title="Ask a question (Brainly)" style="border-color:var(--accent);color:var(--accent)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </button>
         <button class="send-btn" onclick="sendWorld()">
           <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
         </button>
@@ -92,7 +101,7 @@
     <div class="chats-hdr">
       <div class="chats-tabs">
         <button class="ctab active" data-ctab="dm" onclick="switchChatsTab('dm')">Messages</button>
-        <button class="ctab" data-ctab="groups" onclick="switchChatsTab('groups')">Groups</button>
+        <button class="ctab" data-ctab="party" onclick="switchChatsTab('party')">Party Room</button>
         <button class="ctab" data-ctab="match" onclick="switchChatsTab('match')">Match</button>
       </div>
       <div class="chats-tab-actions">
@@ -109,7 +118,32 @@
       <div class="convo-search"><input type="text" id="convo-search" placeholder="Search conversations…" oninput="filterConvos(this.value)"></div>
       <div class="convo-list" id="convo-list"><div class="spinner"></div></div>
     </div>
-    <div class="chats-sub" id="chats-groups-sub">
+    <div class="chats-sub" id="chats-party-sub">
+      <!-- Party room creation -->
+      <div class="party-create-bar">
+        <div class="party-btns">
+          <button class="party-type-btn active" data-ptype="group" onclick="setPartyType('group')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Permanent Group
+          </button>
+          <button class="party-type-btn" data-ptype="temp" onclick="setPartyType('temp')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Temporary
+          </button>
+        </div>
+        <div class="party-temp-opts" id="party-temp-opts" style="display:none">
+          <select id="party-duration" class="tl-select" style="font-size:11px">
+            <option value="5">5 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="30">30 minutes</option>
+            <option value="60">1 hour</option>
+            <option value="0">No limit</option>
+          </select>
+        </div>
+        <button class="icon-btn" onclick="openCreateGroup()" style="flex-shrink:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
       <div class="convo-list" id="group-list"><div class="spinner"></div></div>
     </div>
     <div class="chats-sub" id="chats-match-sub">
@@ -308,8 +342,62 @@
       <div class="posts-feed" id="my-posts"><div class="spinner"></div></div>
     </div>
   </section>
+  <!-- RANK PANEL -->
+  <section class="panel" id="rank-panel">
+    <div class="panel-hdr">
+      <svg class="hdr-icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+      <h2>Rankings</h2>
+    </div>
+    <div class="rank-scroll">
+      <div class="rank-tabs">
+        <button class="ctab active" data-rtab="popularity" onclick="switchRankTab('popularity')">Popularity</button>
+        <button class="ctab" data-rtab="draw"       onclick="switchRankTab('draw')">Draw Ratings</button>
+        <button class="ctab" data-rtab="brainly"    onclick="switchRankTab('brainly')">Brainly</button>
+        <button class="ctab" data-rtab="time"       onclick="switchRankTab('time')">Online Time</button>
+      </div>
+      <div id="rank-content"><div class="spinner"></div></div>
+    </div>
+  </section>
 
 </main>
+
+<!-- ═══ BRAINLY MODAL ═══ -->
+<div class="modal-overlay" id="brainly-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-hdr">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <h3 style="color:var(--accent)">Brainly — Ask</h3>
+      <button class="modal-close" onclick="document.getElementById('brainly-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="form-group">
+      <label>Subject</label>
+      <select id="brainly-subject" class="tl-select" style="width:100%;font-size:13px;padding:8px">
+        <option value="Math">Math</option>
+        <option value="Science">Science</option>
+        <option value="English">English</option>
+        <option value="Filipino">Filipino</option>
+        <option value="History">History</option>
+        <option value="P.E.">P.E.</option>
+        <option value="TLE">TLE (Tech &amp; Livelihood)</option>
+        <option value="Values">Values Education</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Your Question *</label>
+      <textarea id="brainly-question" placeholder="Type your question here…" maxlength="500" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Image <span class="optional">(optional)</span></label>
+      <label class="img-file-label">
+        <input type="file" id="brainly-img-input" accept="image/*" style="display:none" onchange="setBrainlyImage(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <span id="brainly-img-name">Choose image…</span>
+      </label>
+    </div>
+    <button class="btn" onclick="submitBrainlyQuestion()">Post Question</button>
+  </div>
+</div>
 
 <!-- ═══ FULLSCREEN SETTINGS (slides from right) ═══ -->
 <div class="settings-fs" id="settings-fs" style="display:none">
@@ -320,6 +408,7 @@
       </button>
       <h2>Settings</h2>
     </div>
+    <div class="spage-body">
     <div class="settings-profile-card" onclick="openSPage('sp-edit-profile')" style="cursor:pointer">
       <div class="spc-av-wrap">
         <div class="avatar-border-ring" id="spc-border-ring">
@@ -396,6 +485,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
+    </div><!-- end spage-body -->
   </div>
 
   <!-- SUB-PAGES (same as before) -->
@@ -585,18 +675,33 @@
 <div class="modal-overlay" id="profile-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal-box stalk-modal-box">
     <button class="modal-close" onclick="document.getElementById('profile-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+
+    <!-- Avatar + name -->
     <div class="stalk-av-center"><div class="avatar-border-ring sm-border-ring border-ring-none" id="sm-border-ring"><img id="sm-avatar" src="" alt="" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:block"></div></div>
     <div class="stalk-code" id="sm-code"></div>
     <div class="stalk-nameline"><span id="sm-name"></span><span id="sm-badge"></span></div>
+    <div class="stalk-popularity" id="sm-popularity" style="font-size:11px;color:var(--muted);margin-bottom:6px"></div>
+
+    <!-- About & types -->
     <div class="stalk-bio" id="sm-bio"></div>
     <div class="stalk-types" id="sm-types"></div>
-    <div class="stalk-posts-scroll" id="sm-posts"></div>
-    <button class="btn" style="margin-top:12px" onclick="messageFromModal()">Send Message</button>
+
+    <!-- Action buttons -->
+    <div class="stalk-actions">
+      <button class="btn" onclick="messageFromModal()" style="flex:1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Message
+      </button>
+      <button class="btn-like" id="sm-like-btn" onclick="likeProfile()" data-liked="0" style="flex:1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span class="like-txt">Like</span>
+      </button>
+    </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="create-group-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'"><div class="modal-box"><div class="modal-hdr"><h3>Create Group</h3><button class="modal-close" onclick="document.getElementById('create-group-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="form-group"><label>Group Name *</label><input type="text" id="group-name-input" placeholder="e.g. Squad" maxlength="40"></div><div class="form-group"><label>Members <span class="optional">(codes, comma separated)</span></label><input type="text" id="group-members-input" placeholder="000002, 000003…"></div><button class="btn" onclick="createGroup()">Create Group</button></div></div>
-<div class="modal-overlay" id="group-info-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'"><div class="modal-box"><div class="modal-hdr"><h3 id="group-info-name"></h3><button class="modal-close" onclick="document.getElementById('group-info-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="form-group" style="margin-top:10px"><label>Add Member</label><div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="add-member-code" placeholder="000001" maxlength="6" inputmode="numeric"></div></div><button class="btn" onclick="addGroupMember()" style="margin-bottom:12px">Add</button><div id="group-member-list"></div></div></div>
+<div class="modal-overlay" id="create-group-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'"><div class="modal-box"><div class="modal-hdr"><h3>Create Party Room</h3><button class="modal-close" onclick="document.getElementById('create-group-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="form-group"><label>Room Name *</label><input type="text" id="group-name-input" placeholder="e.g. Game Night 🔥" maxlength="40"></div><div class="form-group"><label>Members <span class="optional">(codes, comma separated)</span></label><input type="text" id="group-members-input" placeholder="000002, 000003…"></div><div class="form-group"><label>Type</label><div style="display:flex;gap:8px"><button class="party-type-btn active" id="cg-perm-btn" onclick="selectCreateType('perm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Group</button><button class="party-type-btn" id="cg-temp-btn" onclick="selectCreateType('temp')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Temporary</button></div></div><div class="form-group" id="cg-duration-row" style="display:none"><label>Duration</label><select id="group-duration-input" class="tl-select" style="width:100%;font-size:13px;padding:8px"><option value="0">No limit</option><option value="5">5 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option><option value="60">1 hour</option><option value="120">2 hours</option></select></div><button class="btn" onclick="createGroup()">Create Room</button></div></div>
+<div class="modal-overlay" id="group-info-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'"><div class="modal-box"><div class="modal-hdr"><h3 id="group-info-name"></h3><button class="modal-close" onclick="document.getElementById('group-info-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div id="party-timer-display" style="font-size:12px;color:var(--accent);text-align:center;padding:4px 0;display:none"></div><div class="form-group" style="margin-top:10px"><label>Add Member</label><div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="add-member-code" placeholder="000001" maxlength="6" inputmode="numeric"></div></div><button class="btn" onclick="addGroupMember()" style="margin-bottom:12px">Add</button><div id="group-member-list"></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn-ghost-sm" onclick="leaveGroup()" style="flex:1">Leave Room</button><button class="btn" style="flex:1;background:var(--danger)" onclick="deleteGroup()">Delete Room</button></div></div></div>
 <div class="modal-overlay" id="trade-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'"><div class="modal-box"><div class="modal-hdr"><h3>Trade Offer</h3><button class="modal-close" onclick="document.getElementById('trade-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><p class="modal-sub" id="trade-to-label">To: …</p><div class="form-group"><label>Offer Image <span class="optional">(optional)</span></label><label class="img-file-label"><input type="file" id="trade-img-input" accept="image/*" style="display:none" onchange="setTradeImage(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> <span id="trade-img-name">Choose image…</span></label></div><div class="trade-table"><div class="trade-col"><div class="trade-col-hdr">I Offer</div><textarea id="trade-offer" placeholder="What you're offering…" maxlength="200" rows="3"></textarea></div><div class="trade-arrow">⇄</div><div class="trade-col"><div class="trade-col-hdr">I Want</div><textarea id="trade-want" placeholder="What you want…" maxlength="200" rows="3"></textarea></div></div><div class="form-group" style="margin-top:10px"><label>Note <span class="optional">(optional)</span></label><input type="text" id="trade-note" placeholder="Extra info…" maxlength="200"></div><button class="btn" onclick="sendTrade()">Send Offer</button></div></div>
 <div class="modal-overlay" id="poll-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'"><div class="modal-box"><div class="modal-hdr"><h3>Create Poll</h3><button class="modal-close" onclick="document.getElementById('poll-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="form-group"><label>Question *</label><input type="text" id="poll-question" placeholder="Ask something…" maxlength="200"></div><div id="poll-options-wrap"><div class="form-group"><label>Option 1</label><input type="text" class="poll-opt" placeholder="Option 1" maxlength="100"></div><div class="form-group"><label>Option 2</label><input type="text" class="poll-opt" placeholder="Option 2" maxlength="100"></div></div><button class="btn-ghost-sm" onclick="addPollOption()" style="margin-bottom:8px">+ Add option</button><button class="btn" onclick="submitPoll()">Post Poll</button></div></div>
 <div class="modal-overlay" id="delete-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'"><div class="modal-box"><div class="modal-hdr"><h3 style="color:var(--danger)">Delete Account</h3><button class="modal-close" onclick="document.getElementById('delete-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><p style="font-size:13px;color:var(--muted);margin-bottom:12px">Permanent. Type your <strong>full name</strong> to confirm:</p><div class="form-group"><input type="text" id="delete-confirm-input" placeholder="Type your full name…"></div><div id="delete-error" style="font-size:12px;color:var(--danger);margin-bottom:8px;display:none"></div><button class="btn" style="background:var(--danger)" onclick="deleteAccount()">Delete My Account</button></div></div>

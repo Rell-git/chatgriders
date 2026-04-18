@@ -10,7 +10,8 @@ let typingCh=null, typingTimeout=null;
 let leaderboardTimer=null, anonMatchId=null, anonSlot=null, anonTimer=null;
 let anonSub=null, anonQueueSub=null, anonHeartShown=false, myHeartPressed=false, anonMatchesLeft=10;
 let qrInstance=null, html5QrScanner=null, tradeImageFile=null;
-    let calcValue='0', calcPrev='', calcOp='', calcReset=false;
+let calcValue='0', calcPrev='', calcOp='', calcReset=false;
+let brainlyImageFile=null, brainlyAnswerTimers={};
 // Draw Battle solo
 let soloCanvas=null, soloCtx=null, drawIsDrawing=false;
 let drawColor='#7b6ef6', drawSize=5, drawEraser=false, drawFsMode=false;
@@ -118,6 +119,7 @@ function switchPanel(name){
   if(name==='chats'){unreadCount=0;updateDMBadge();}
   if(name==='games'){showGamesHome();}
   if(name==='profile'){loadProfilePanel();}
+  if(name==='rank'){switchRankTab('popularity');}
 }
 function updateDMBadge(){const b=document.getElementById('dm-badge');if(!b)return;b.style.display=unreadCount>0?'':(b.style.display='none','none');b.textContent=unreadCount>9?'9+':unreadCount;}
 
@@ -127,8 +129,8 @@ function switchChatsTab(tab){
   document.querySelectorAll('.chats-sub').forEach(s=>s.classList.toggle('active',s.id===`chats-${tab}-sub`));
   const add=document.getElementById('act-add'),grp=document.getElementById('act-grp');
   if(add)add.style.display=tab==='dm'?'flex':'none';
-  if(grp)grp.style.display=tab==='groups'?'flex':'none';
-  if(tab==='groups')loadGroups();
+  if(grp)grp.style.display=tab==='party'?'flex':'none';
+  if(tab==='party')loadGroups();
 }
 
 // ── Presence ──────────────────────────────────────────────────
@@ -146,11 +148,11 @@ async function pingLeaderboard(){
 // ── World chat ────────────────────────────────────────────────
 async function cleanupWorld(){await sb.rpc('cleanup_world_messages').catch(()=>{});}
 async function loadWorldChat(){
-  const{data}=await sb.from('world_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge)').order('created_at',{ascending:true}).limit(120);
+  const{data}=await sb.from('world_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge,popularity)').order('created_at',{ascending:true}).limit(120);
   const area=document.getElementById('world-msgs');area.innerHTML='';
   (data||[]).forEach(m=>appendWorldMsg(m));scrollBottom(area);
   sb.channel('world-rt').on('postgres_changes',{event:'INSERT',schema:'public',table:'world_messages'},async pl=>{
-    const{data:full}=await sb.from('world_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge)').eq('id',pl.new.id).single();
+    const{data:full}=await sb.from('world_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge,popularity)').eq('id',pl.new.id).single();
     if(full){appendWorldMsg(full);scrollBottom(document.getElementById('world-msgs'));}
   }).subscribe();
 }
@@ -158,11 +160,19 @@ function appendWorldMsg(msg){
   const area=document.getElementById('world-msgs');
   const p=msg.profiles||{},isMine=msg.user_id===ME.id;
   const av=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url),border=p.border_style||'none';
-  let bubble='';
-  if(msg.content)bubble+=`<div class="msg-text">${linkify(msg.content)}</div>`;
-  if(msg.image_url)bubble+=`<img class="msg-img" src="${escHtml(msg.image_url)}" loading="lazy" onclick="openImgFull(this.src)">`;
-  const el=document.createElement('div');el.className=`msg${isMine?' mine':''}`;el.dataset.id=msg.id;el.dataset.table='world_messages';
-  el.innerHTML=`<div class="msg-av-wrap" onclick="openProfileModal('${msg.user_id}')"><div class="msg-av border-${border}"><img src="${av}" loading="lazy"></div></div><div class="msg-body"><div class="msg-meta"><span class="msg-name" onclick="openProfileModal('${msg.user_id}')">${isMine?'You':escHtml(displayName(p))}</span>${renderBadge(p.badge)}<span>${timeAgo(msg.created_at)}</span></div><div class="msg-bubble border-bubble-${border}">${bubble}</div></div>`;
+  const isBrainly=msg.content?.startsWith('\u{1F9E0} [BRAINLY|');
+  let inner='';
+  if(isBrainly){
+    const card=renderBrainlyCard(msg.content);
+    inner=card||`<div class="msg-bubble border-bubble-${border}"><div class="msg-text">${linkify(msg.content)}</div></div>`;
+  } else {
+    let bubble='';
+    if(msg.content)bubble+=`<div class="msg-text">${linkify(msg.content)}</div>`;
+    if(msg.image_url)bubble+=`<img class="msg-img" src="${escHtml(msg.image_url)}" loading="lazy" onclick="openImgFull(this.src)">`;
+    inner=`<div class="msg-bubble border-bubble-${border}">${bubble}</div>`;
+  }
+  const el=document.createElement('div');el.className=`msg${isMine?' mine':''}${isBrainly?' msg-card-wrap':''}`;el.dataset.id=msg.id;el.dataset.table='world_messages';
+  el.innerHTML=`<div class="msg-av-wrap" onclick="openProfileModal('${msg.user_id}')"><div class="msg-av border-${border}"><img src="${av}" loading="lazy"></div></div><div class="msg-body" style="max-width:${isBrainly?'94':'72'}%"><div class="msg-meta"><span class="msg-name" onclick="openProfileModal('${msg.user_id}')">${isMine?'You':escHtml(displayName(p))}</span>${renderBadge(p.badge,p.popularity)}<span>${timeAgo(msg.created_at)}</span></div>${inner}</div>`;
   addMsgCtx(el,msg.id,'world_messages',msg.user_id===ME.id);
   area.appendChild(el);
 }
@@ -310,12 +320,27 @@ async function openProfileModal(userId){
   document.getElementById('sm-avatar').src=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url);
   document.getElementById('sm-code').textContent=`#${p.user_code||'------'}`;
   document.getElementById('sm-name').textContent=displayName(p);
-  document.getElementById('sm-badge').innerHTML=renderBadge(p.badge);
-  document.getElementById('sm-bio').innerHTML=p.bio?linkify(p.bio):'';
+  document.getElementById('sm-badge').innerHTML=renderBadge(p.badge,p.popularity);
+  document.getElementById('sm-popularity').textContent=`${p.popularity||0} likes`;
+  document.getElementById('sm-bio').innerHTML=p.bio?linkify(p.bio):'<span style="color:var(--muted);font-size:12px">No bio yet</span>';
   document.getElementById('sm-types').innerHTML=renderTypeTags(p.user_types||[]);
-  const{data:posts}=await sb.from('posts').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(5);
-  document.getElementById('sm-posts').innerHTML=(posts||[]).map(renderPostCard).join('')||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">No posts yet</div>';
+  // Check if already liked
+  const likeBtn=document.getElementById('sm-like-btn');
+  const{data:liked}=await sb.from('profile_likes').select('id').eq('liker_id',ME.id).eq('liked_id',userId).maybeSingle();
+  if(likeBtn){likeBtn.dataset.liked=liked?'1':'0';likeBtn.querySelector('.like-txt').textContent=liked?'Liked':'Like';}
   document.getElementById('profile-modal').style.display='flex';
+}
+
+async function likeProfile(){
+  if(!stalkedUserId)return;
+  const btn=document.getElementById('sm-like-btn');
+  const alreadyLiked=btn?.dataset.liked==='1';
+  if(alreadyLiked){alert('Already liked!');return;}
+  await sb.from('profile_likes').insert({liker_id:ME.id,liked_id:stalkedUserId});
+  await sb.from('profiles').update({popularity:((await sb.from('profiles').select('popularity').eq('id',stalkedUserId).single()).data?.popularity||0)+10}).eq('id',stalkedUserId);
+  if(btn){btn.dataset.liked='1';btn.querySelector('.like-txt').textContent='Liked';}
+  const el=document.getElementById('sm-popularity');
+  if(el) el.textContent=`${parseInt(el.textContent)+10} likes`;
 }
 function messageFromModal(){if(!stalkedUserId)return;const name=document.getElementById('sm-name').textContent;document.getElementById('profile-modal').style.display='none';sb.from('profiles').select('avatar_seed,avatar_style,avatar_url').eq('id',stalkedUserId).single().then(({data:p})=>{if(p){switchPanel('chats');openThread(stalkedUserId,name,p.avatar_seed,p.avatar_style,p.avatar_url);}});}
 
@@ -413,28 +438,20 @@ function confirmDeleteAccount(){document.getElementById('delete-confirm-input').
 async function deleteAccount(){const typed=document.getElementById('delete-confirm-input').value.trim(),err=document.getElementById('delete-error');if(typed.toLowerCase()!==displayName(ME).toLowerCase()){err.textContent=`Type exactly: "${displayName(ME)}"`;err.style.display='';return;}await sb.from('profiles').delete().eq('id',ME.id);await sb.auth.signOut();window.location.href='index.html';}
 
 // ── Groups ────────────────────────────────────────────────────
-async function loadGroups(){
-  const{data:mems}=await sb.from('group_members').select('group_id').eq('user_id',ME.id);
-  const list=document.getElementById('group-list');
-  if(!mems?.length){list.innerHTML='<div class="convo-empty">No groups yet.</div>';return;}
-  const{data:groups}=await sb.from('group_chats').select('*').in('id',mems.map(m=>m.group_id));
-  list.innerHTML=(groups||[]).map(g=>`<div class="convo-item" data-gid="${g.id}" onclick="openGroup(${g.id},'${escAttr(g.name)}')"><div class="convo-av" style="background:var(--sur2);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="convo-info"><div class="convo-name">${escHtml(g.name)}</div><div class="convo-preview">Group chat</div></div></div>`).join('')||'<div class="convo-empty">No groups yet</div>';
-}
+// loadGroups, createGroup, openGroupInfo defined below in Party Room section
 async function openGroup(groupId,name){
   activeGroup=groupId;document.getElementById('group-thread-panel').classList.add('active');document.getElementById('group-thread-name').textContent=name;document.querySelectorAll('#group-list .convo-item').forEach(el=>el.classList.remove('active'));document.querySelector(`[data-gid="${groupId}"]`)?.classList.add('active');
   const area=document.getElementById('group-msgs');area.innerHTML='<div class="spinner"></div>';
-  const{data}=await sb.from('group_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,border_style,badge)').eq('group_id',groupId).order('created_at',{ascending:true}).limit(150);
+  const{data}=await sb.from('group_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,border_style,badge,popularity)').eq('group_id',groupId).order('created_at',{ascending:true}).limit(150);
   area.innerHTML='';(data||[]).forEach(m=>{if(!m.deleted_by?.includes(ME.id))appendGroupMsg(m);});scrollBottom(area);
   if(groupSub)sb.removeChannel(groupSub);
-  groupSub=sb.channel(`grp-${groupId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'group_messages',filter:`group_id=eq.${groupId}`},async pl=>{const{data:full}=await sb.from('group_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,border_style,badge)').eq('id',pl.new.id).single();if(full){appendGroupMsg(full);scrollBottom(area);}}).subscribe();
+  groupSub=sb.channel(`grp-${groupId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'group_messages',filter:`group_id=eq.${groupId}`},async pl=>{const{data:full}=await sb.from('group_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,border_style,badge,popularity)').eq('id',pl.new.id).single();if(full){appendGroupMsg(full);scrollBottom(area);}}).subscribe();
 }
-function appendGroupMsg(msg){const area=document.getElementById('group-msgs'),p=msg.profiles||{},isMine=msg.sender_id===ME.id;const av=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url),border=p.border_style||'none';let bubble='';if(msg.content)bubble+=`<div class="msg-text">${linkify(msg.content)}</div>`;if(msg.image_url)bubble+=`<img class="msg-img" src="${escHtml(msg.image_url)}" loading="lazy" onclick="openImgFull(this.src)">`;const el=document.createElement('div');el.className=`msg${isMine?' mine':''}`;el.dataset.id=msg.id;el.dataset.table='group_messages';el.innerHTML=`<div class="msg-av-wrap"><div class="msg-av border-${border}"><img src="${av}" loading="lazy"></div></div><div class="msg-body"><div class="msg-meta"><span class="msg-name">${isMine?'You':escHtml(displayName(p))}</span>${renderBadge(p.badge)}<span>${timeAgo(msg.created_at)}</span></div><div class="msg-bubble">${bubble}</div></div>`;addMsgCtx(el,msg.id,'group_messages',isMine);area.appendChild(el);}
+function appendGroupMsg(msg){const area=document.getElementById('group-msgs'),p=msg.profiles||{},isMine=msg.sender_id===ME.id;const av=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url),border=p.border_style||'none';let bubble='';if(msg.content)bubble+=`<div class="msg-text">${linkify(msg.content)}</div>`;if(msg.image_url)bubble+=`<img class="msg-img" src="${escHtml(msg.image_url)}" loading="lazy" onclick="openImgFull(this.src)">`;const el=document.createElement('div');el.className=`msg${isMine?' mine':''}`;el.dataset.id=msg.id;el.dataset.table='group_messages';el.innerHTML=`<div class="msg-av-wrap"><div class="msg-av border-${border}"><img src="${av}" loading="lazy"></div></div><div class="msg-body"><div class="msg-meta"><span class="msg-name">${isMine?'You':escHtml(displayName(p))}</span>${renderBadge(p.badge,p.popularity)}<span>${timeAgo(msg.created_at)}</span></div><div class="msg-bubble">${bubble}</div></div>`;addMsgCtx(el,msg.id,'group_messages',isMine);area.appendChild(el);}
 async function sendGroup(){if(!activeGroup)return;const inp=document.getElementById('group-input'),txt=inp.value.trim();if(!txt)return;inp.value='';await sb.from('group_messages').insert({group_id:activeGroup,sender_id:ME.id,content:txt});}
 async function uploadGrpImage(input){if(!activeGroup)return;const file=input.files[0];if(!file)return;const path=`grp/${ME.id}/${Date.now()}-${file.name}`;await sb.storage.from('chat-images').upload(path,file);const{data:{publicUrl}}=sb.storage.from('chat-images').getPublicUrl(path);await sb.from('group_messages').insert({group_id:activeGroup,sender_id:ME.id,image_url:publicUrl});input.value='';}
 function closeGroupThread(){document.getElementById('group-thread-panel').classList.remove('active');activeGroup=null;}
 function openCreateGroup(){document.getElementById('create-group-modal').style.display='flex';}
-async function createGroup(){const name=document.getElementById('group-name-input').value.trim();if(!name)return alert('Name required.');const codes=document.getElementById('group-members-input').value.split(',').map(s=>s.trim().replace('#','').padStart(6,'0')).filter(Boolean);const{data:grp,error}=await sb.from('group_chats').insert({name,created_by:ME.id}).select().single();if(error){alert('Failed: '+error.message);return;}await sb.from('group_members').insert({group_id:grp.id,user_id:ME.id});if(codes.length){const{data:others}=await sb.from('profiles').select('id').in('user_code',codes);if(others?.length)await sb.from('group_members').insert(others.filter(o=>o.id!==ME.id).map(o=>({group_id:grp.id,user_id:o.id})));}document.getElementById('create-group-modal').style.display='none';await loadGroups();openGroup(grp.id,name);}
-async function openGroupInfo(){if(!activeGroup)return;document.getElementById('group-info-name').textContent=document.getElementById('group-thread-name').textContent;document.getElementById('group-info-modal').style.display='flex';const{data:mems}=await sb.from('group_members').select('*, profiles(name,surname,user_code)').eq('group_id',activeGroup);document.getElementById('group-member-list').innerHTML=(mems||[]).map(m=>`<div class="convo-item" style="padding:8px 0;border:none"><div class="convo-info"><div class="convo-name">${escHtml(displayName(m.profiles))}</div><div class="convo-preview">#${m.profiles?.user_code||'------'}</div></div></div>`).join('');}
 async function addGroupMember(){const code=document.getElementById('add-member-code').value.trim().replace('#','').padStart(6,'0');const{data:p}=await sb.from('profiles').select('id').eq('user_code',code).maybeSingle();if(!p)return alert('User not found.');await sb.from('group_members').insert({group_id:activeGroup,user_id:p.id});document.getElementById('add-member-code').value='';openGroupInfo();}
 
 // ══════════════════════════════════════════════════════════════
@@ -600,20 +617,28 @@ function toggleDrawEraser(){drawEraser=!drawEraser;document.getElementById('draw
 async function uploadDrawing(){
   if(!soloCanvas)return;
   const btn=document.querySelector('.draw-submit-bar .btn');
-  if(btn){btn.disabled=true;btn.textContent='Uploading…';}
-  // Convert canvas to blob
-  soloCanvas.toBlob(async blob=>{
-    if(!blob){if(btn){btn.disabled=false;btn.textContent='Post Drawing';}return;}
+  if(btn){btn.disabled=true;btn.innerHTML='Uploading…';}
+  try{
+    const blob=await new Promise(r=>soloCanvas.toBlob(r,'image/png'));
+    if(!blob)throw new Error('Canvas empty');
     const path=`draw/${ME.id}/${Date.now()}.png`;
-    const{error}=await sb.storage.from('chat-images').upload(path,blob,{contentType:'image/png'});
-    if(error){alert('Upload failed');if(btn){btn.disabled=false;btn.textContent='Post Drawing';}return;}
+    const{error:ue}=await sb.storage.from('chat-images').upload(path,blob,{contentType:'image/png'});
+    if(ue)throw ue;
     const{data:{publicUrl}}=sb.storage.from('chat-images').getPublicUrl(path);
-    await sb.from('draw_battles').insert({user_id:ME.id,image_url:publicUrl,prompt:currentDrawPrompt,category:currentDrawCategory,avg_rating:0,comment_count:0});
+    const{error:ie}=await sb.from('draw_battles').insert({
+      user_id:ME.id,image_url:publicUrl,
+      prompt:currentDrawPrompt||'Free draw',
+      category:currentDrawCategory||'General',
+      avg_rating:0,comment_count:0
+    });
+    if(ie)throw ie;
     closeDrawCanvas();
-    // Go to gallery to see it
     switchPanel('games');openGameSection('draw-battle');
-    if(btn){btn.disabled=false;btn.textContent='Post Drawing';}
-  },'image/png');
+  }catch(e){
+    alert('Upload failed: '+(e.message||e));
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='Post Drawing';}
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -668,7 +693,7 @@ function calcAction(v){
 
 // Translator
 let tlTimer=null;
-async function translateNow(){const txt=document.getElementById('tl-input')?.value.trim();const out=document.getElementById('tl-output');if(!txt){if(out)out.textContent='Translation will appear here';return;}const from=document.getElementById('tl-from')?.value,to=document.getElementById('tl-to')?.value;if(out)out.textContent='Translating…';try{const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(txt)}&langpair=${from}|${to}`);const d=await res.json();if(out)out.textContent=d.responseData?.translatedText||'Translation failed.';}catch{if(out)out.textContent='Network error.';}}
+async function translateNow(){const txt=document.getElementById('tl-input')?.value.trim();const out=document.getElementById('tl-output');if(!txt){if(out)out.textContent='Translation will appear here';return;}const from=document.getElementById('tl-from')?.value,to=document.getElementById('tl-to')?.value;if(out)out.textContent='Translating…';try{const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(txt)}&langpair=${from}|${to}`);const d=await res.json();const t=d.responseData?.translatedText;if(out)out.textContent=(t&&t!==txt&&!t.toLowerCase().includes('mymemory'))?t:'diko alam yan';}catch{if(out)out.textContent='diko alam yan';}}
 function translateDebounce(){clearTimeout(tlTimer);tlTimer=setTimeout(translateNow,700);}
 function swapLangs(){const f=document.getElementById('tl-from'),t=document.getElementById('tl-to'),tmp=f.value;f.value=t.value;t.value=tmp;translateNow();}
 function copyTranslation(){const txt=document.getElementById('tl-output')?.textContent;if(txt)navigator.clipboard?.writeText(txt).then(()=>alert('Copied!'));}
@@ -679,3 +704,176 @@ async function doLogout(){clearInterval(leaderboardTimer);if(presenceCh)await pr
 // ── Helpers ───────────────────────────────────────────────────
 function scrollBottom(el){if(el)el.scrollTop=el.scrollHeight;}
 function openImgFull(src){const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:zoom-out';ov.innerHTML=`<img src="${src}" style="max-width:92vw;max-height:92vh;border-radius:8px">`;ov.onclick=()=>ov.remove();document.body.appendChild(ov);}
+
+// ══════════════════════════════════════════════════════════════
+// PARTY ROOM (Groups v2)
+// ══════════════════════════════════════════════════════════════
+let partyType='group', partyTimers={};
+
+function setPartyType(t){
+  partyType=t;
+  document.querySelectorAll('.party-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.ptype===t));
+  const opts=document.getElementById('party-temp-opts');if(opts)opts.style.display=t==='temp'?'flex':'none';
+}
+function selectCreateType(t){
+  partyType=t;
+  document.getElementById('cg-perm-btn')?.classList.toggle('active',t==='perm');
+  document.getElementById('cg-temp-btn')?.classList.toggle('active',t==='temp');
+  const dur=document.getElementById('cg-duration-row');if(dur)dur.style.display=t==='temp'?'block':'none';
+}
+
+
+// Load rank when panel opens — handled by main switchPanel above
+async function createGroup(){
+  const name=document.getElementById('group-name-input').value.trim();if(!name)return alert('Name required.');
+  const codes=document.getElementById('group-members-input').value.split(',').map(s=>s.trim().replace('#','').padStart(6,'0')).filter(Boolean);
+  const durEl=document.getElementById('group-duration-input');
+  const durationMins=partyType==='temp'&&durEl?parseInt(durEl.value)||0:0;
+  const expiresAt=durationMins>0?new Date(Date.now()+durationMins*60000).toISOString():null;
+  const{data:grp,error}=await sb.from('group_chats').insert({name,created_by:ME.id,expires_at:expiresAt}).select().single();
+  if(error){alert('Failed: '+error.message);return;}
+  await sb.from('group_members').insert({group_id:grp.id,user_id:ME.id});
+  if(codes.length){const{data:others}=await sb.from('profiles').select('id').in('user_code',codes);if(others?.length)await sb.from('group_members').insert(others.filter(o=>o.id!==ME.id).map(o=>({group_id:grp.id,user_id:o.id})));}
+  document.getElementById('create-group-modal').style.display='none';
+  await loadGroups();openGroup(grp.id,name);
+}
+
+async function loadGroups(){
+  // Delete expired groups
+  await sb.from('group_chats').delete().lt('expires_at',new Date().toISOString()).not('expires_at','is',null).catch(()=>{});
+  const{data:mems}=await sb.from('group_members').select('group_id').eq('user_id',ME.id);
+  const list=document.getElementById('group-list');
+  if(!mems?.length){list.innerHTML='<div class="convo-empty">No party rooms yet.</div>';return;}
+  const{data:groups}=await sb.from('group_chats').select('*').in('id',mems.map(m=>m.group_id)).order('created_at',{ascending:false});
+  list.innerHTML=(groups||[]).map(g=>{
+    const isTemp=!!g.expires_at;
+    const remaining=isTemp?Math.max(0,Math.floor((new Date(g.expires_at)-Date.now())/60000)):null;
+    const timerTxt=isTemp?(remaining>0?`⏱ ${remaining}m left`:'Expired'):'';
+    return `<div class="convo-item" data-gid="${g.id}" onclick="openGroup(${g.id},'${escAttr(g.name)}')">
+      <div class="convo-av" style="background:var(--glow);display:flex;align-items:center;justify-content:center;color:var(--accent)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="convo-info">
+        <div class="convo-name">${escHtml(g.name)}</div>
+        <div class="convo-preview">${timerTxt||'Party Room'}</div>
+      </div>
+      ${isTemp?'<div class="party-badge">TEMP</div>':''}
+    </div>`;
+  }).join('')||'<div class="convo-empty">No party rooms yet</div>';
+}
+
+async function leaveGroup(){
+  if(!activeGroup)return;
+  if(!confirm('Leave this party room?'))return;
+  await sb.from('group_members').delete().eq('group_id',activeGroup).eq('user_id',ME.id);
+  document.getElementById('group-info-modal').style.display='none';
+  closeGroupThread();loadGroups();
+}
+async function deleteGroup(){
+  if(!activeGroup)return;
+  if(!confirm('Delete this party room? This cannot be undone.'))return;
+  await sb.from('group_chats').delete().eq('id',activeGroup).eq('created_by',ME.id);
+  document.getElementById('group-info-modal').style.display='none';
+  closeGroupThread();loadGroups();
+}
+
+// Show timer in group info modal
+async function openGroupInfo(){
+  if(!activeGroup)return;
+  document.getElementById('group-info-name').textContent=document.getElementById('group-thread-name').textContent;
+  document.getElementById('group-info-modal').style.display='flex';
+  const{data:mems}=await sb.from('group_members').select('*, profiles(name,surname,user_code)').eq('group_id',activeGroup);
+  document.getElementById('group-member-list').innerHTML=(mems||[]).map(m=>`<div class="convo-item" style="padding:8px 0;border:none"><div class="convo-info"><div class="convo-name">${escHtml(displayName(m.profiles))}</div><div class="convo-preview">#${m.profiles?.user_code||'------'}</div></div></div>`).join('');
+  // Timer
+  const{data:grp}=await sb.from('group_chats').select('expires_at').eq('id',activeGroup).single();
+  const timerEl=document.getElementById('party-timer-display');
+  if(grp?.expires_at&&timerEl){
+    const mins=Math.max(0,Math.floor((new Date(grp.expires_at)-Date.now())/60000));
+    timerEl.style.display='';timerEl.textContent=mins>0?`Expires in ${mins} min`:'This room has expired';
+  } else if(timerEl){timerEl.style.display='none';}
+}
+
+// ══════════════════════════════════════════════════════════════
+// BRAINLY
+// ══════════════════════════════════════════════════════════════
+const BRAINLY_SUBJECTS={Math:'#3b82f6',Science:'#22c55e',English:'#f59e0b',Filipino:'#ef4444',History:'#a855f7',PE:'#06b6d4',TLE:'#ec4899',Values:'#8b5cf6',Other:'#6b7280'};
+
+function openBrainlyModal(){document.getElementById('brainly-modal').style.display='flex';document.getElementById('brainly-question').value='';document.getElementById('brainly-img-name').textContent='Choose image…';brainlyImageFile=null;}
+function setBrainlyImage(input){brainlyImageFile=input.files[0];document.getElementById('brainly-img-name').textContent=brainlyImageFile?brainlyImageFile.name:'Choose image…';}
+async function submitBrainlyQuestion(){
+  const q=document.getElementById('brainly-question').value.trim();if(!q)return alert('Question required.');
+  const subj=document.getElementById('brainly-subject').value;
+  let imgUrl=null;
+  if(brainlyImageFile){const p=`brainly/${ME.id}/${Date.now()}-${brainlyImageFile.name}`;await sb.storage.from('chat-images').upload(p,brainlyImageFile);const{data:{publicUrl}}=sb.storage.from('chat-images').getPublicUrl(p);imgUrl=publicUrl;}
+  await sb.from('brainly_questions').insert({user_id:ME.id,subject:subj,question:q,image_url:imgUrl,answered:false,correct_answerer:null});
+  document.getElementById('brainly-modal').style.display='none';
+  // Post to world chat as special card
+  await sb.from('world_messages').insert({user_id:ME.id,content:`🧠 [BRAINLY|${subj}] ${q}`});
+}
+
+// Render Brainly message in world chat
+function renderBrainlyCard(content){
+  const m=content.match(/^🧠 \[BRAINLY\|(.+?)\] (.+)$/);if(!m)return null;
+  const subj=m[1],q=m[2];
+  const color=BRAINLY_SUBJECTS[subj]||'#6b7280';
+  return `<div class="brainly-card" style="border-color:${color}">
+    <div class="brainly-card-hdr" style="background:${color}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Brainly · ${escHtml(subj)}
+    </div>
+    <div class="brainly-q">${escHtml(q)}</div>
+    <div class="brainly-footer">
+      <input type="text" class="brainly-answer-input" placeholder="Type your answer…" onkeydown="if(event.key==='Enter')submitBrainlyAnswer(this)">
+      <button class="send-btn" onclick="submitBrainlyAnswer(this.previousElementSibling)" style="width:26px;height:26px">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+async function submitBrainlyAnswer(input){
+  const ans=input.value.trim();if(!ans)return;input.value='';
+  await sb.from('world_messages').insert({user_id:ME.id,content:`✅ [ANSWER] ${ans}`});
+}
+
+// ══════════════════════════════════════════════════════════════
+// RANK PANEL
+// ══════════════════════════════════════════════════════════════
+async function switchRankTab(tab){
+  document.querySelectorAll('[data-rtab]').forEach(b=>b.classList.toggle('active',b.dataset.rtab===tab));
+  const cont=document.getElementById('rank-content');cont.innerHTML='<div class="spinner"></div>';
+  if(tab==='popularity') await loadRankPopularity(cont);
+  else if(tab==='draw')  await loadRankDraw(cont);
+  else if(tab==='brainly') await loadRankBrainly(cont);
+  else if(tab==='time')  await loadRankTime(cont);
+}
+async function loadRankPopularity(cont){
+  const{data}=await sb.from('profiles').select('id,name,surname,avatar_seed,avatar_style,avatar_url,badge,popularity').order('popularity',{ascending:false}).limit(20);
+  cont.innerHTML=`<div class="rank-list">${(data||[]).map((p,i)=>rankRow(i,p,p.popularity,`${p.popularity||0} likes`)).join('')}</div>`;
+}
+async function loadRankDraw(cont){
+  const{data}=await sb.from('draw_battles').select('user_id,avg_rating,prompt,image_url,profiles(name,surname,avatar_seed,avatar_style,avatar_url,badge,popularity)').order('avg_rating',{ascending:false}).limit(20);
+  cont.innerHTML=`<div class="rank-list">${(data||[]).map((d,i)=>{const p=d.profiles||{};return rankRow(i,p,d.avg_rating,`${(d.avg_rating||0).toFixed(1)} stars · ${escHtml(d.prompt||'')}`);}).join('')}</div>`;
+}
+async function loadRankBrainly(cont){
+  // Count correct answers per user
+  const{data}=await sb.from('brainly_questions').select('correct_answerer').not('correct_answerer','is',null);
+  const counts={};(data||[]).forEach(r=>{counts[r.correct_answerer]=(counts[r.correct_answerer]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,20);
+  if(!sorted.length){cont.innerHTML='<div class="convo-empty">No rankings yet</div>';return;}
+  const ids=sorted.map(e=>e[0]);
+  const{data:profs}=await sb.from('profiles').select('id,name,surname,avatar_seed,avatar_style,avatar_url,badge,popularity').in('id',ids);
+  const rows=sorted.map(([uid,cnt],i)=>{const p=profs?.find(x=>x.id===uid)||{};return rankRow(i,p,cnt,`${cnt} correct answers`);}).join('');
+  cont.innerHTML=`<div class="rank-list">${rows}</div>`;
+}
+async function loadRankTime(cont){
+  const{data}=await sb.from('leaderboard').select('user_id,user_name,score').order('score',{ascending:false}).limit(20);
+  cont.innerHTML=`<div class="rank-list">${(data||[]).map((r,i)=>{const h=Math.floor(r.score/3600),m=Math.floor((r.score%3600)/60);return `<div class="rank-row"><div class="rank-num">${rankMedal(i)}</div><div class="rank-name">${escHtml(r.user_name||'User')}</div><div class="rank-val">${h}h ${m}m</div></div>`;}).join('')}</div>`;
+}
+function rankRow(i,p,score,label){
+  const av=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url);
+  return `<div class="rank-row"><div class="rank-num">${rankMedal(i)}</div><img src="${av}" class="rank-av" onclick="openProfileModal('${p.id}')"><div class="rank-info"><div class="rank-name">${escHtml(displayName(p))}${renderBadge(p.badge,p.popularity)}</div><div class="rank-label">${escHtml(label)}</div></div></div>`;
+}
+function rankMedal(i){return i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style="font-size:12px;color:var(--muted)">${i+1}</span>`;}
+
+
+// (rank panel loading handled in main switchPanel above)

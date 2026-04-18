@@ -9,19 +9,22 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // Admin user codes (set border/badge from Supabase dashboard)
 const ADMIN_CODES = ['000001','000111'];
 
-// ── BADGES (set in Supabase → profiles.badge) ───────────────
-// Values: crown | verified | diamond | star | fire | none
+// ── BADGES ──────────────────────────────────────────────────
+// Set in Supabase: profiles.badge = "verified" | "king" | "checkmate" | "star" | "none"
+// "star" is also auto-granted when popularity >= 500
 const BADGES = {
-  crown:    {icon:'👑', tip:'Studio Founder'},
-  verified: {icon:'✅', tip:'Verified'},
-  diamond:  {icon:'💎', tip:'Diamond Member'},
-  star:     {icon:'⭐', tip:'Star User'},
-  fire:     {icon:'🔥', tip:'Trending'},
-  none:     {icon:'',   tip:''},
+  verified:  {img:'badge-verified.png',  tip:'Verified — Official Account', color:'#7b6ef6'},
+  king:      {img:'badge-king.png',      tip:'King — Developer',            color:'#f59e0b'},
+  checkmate: {img:'badge-checkmate.png', tip:'Checkmate — Top Player',      color:'#3b82f6'},
+  star:      {img:'badge-star.png',      tip:'Star — Popular (500+ likes)', color:'#f59e0b'},
+  none:      {img:'',                    tip:'',                            color:''},
 };
-function renderBadge(badge) {
-  const b = BADGES[badge]||BADGES.none;
-  return b.icon ? `<span class="badge-icon" title="${b.tip}">${b.icon}</span>` : '';
+function renderBadge(badge, popularity) {
+  // Auto-star at 500+ popularity
+  const effectiveBadge = ((!badge||badge==='none') && (popularity||0)>=500) ? 'star' : badge;
+  const b = BADGES[effectiveBadge]||BADGES.none;
+  if(!b.img) return '';
+  return `<img src="${b.img}" class="badge-img" title="${b.tip}" alt="${b.tip}" width="16" height="16" style="vertical-align:middle;margin-left:3px">`;
 }
 
 // ── AVATARS ─────────────────────────────────────────────────
