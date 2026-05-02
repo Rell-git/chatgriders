@@ -37,16 +37,6 @@
       </div>
       <span class="nav-label">Chats</span>
     </button>
-    <!-- Games -->
-    <button class="nav-btn" data-panel="games" data-tip="Games" onclick="switchPanel('games')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="11" r="1"/><circle cx="19" cy="13" r="1"/></svg>
-      <span class="nav-label">Games</span>
-    </button>
-    <!-- Rank -->
-    <button class="nav-btn" data-panel="rank" data-tip="Rankings" onclick="switchPanel('rank')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-      <span class="nav-label">Rank</span>
-    </button>
   </div>
 
   <div class="nav-bottom">
@@ -72,6 +62,11 @@
       <h2>World</h2>
       <div class="hdr-right">
         <div class="online-pill"><div class="dot-green"></div><span id="online-label">—</span></div>
+        <!-- Notification bell -->
+        <button class="icon-btn notif-bell-btn" id="notif-bell-btn" onclick="openNotifPanel()" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot" id="notif-dot" style="display:none"></span>
+        </button>
         <button class="icon-btn" id="pwa-install-btn" style="display:none" onclick="installPWA()" title="Install App">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
@@ -231,68 +226,6 @@
     </div>
   </section>
 
-  <!-- GAMES PANEL -->
-  <section class="panel" id="games-panel">
-    <div class="panel-hdr">
-      <svg class="hdr-icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4"/><circle cx="17" cy="11" r="1"/><circle cx="19" cy="13" r="1"/></svg>
-      <h2>Games</h2>
-      <div class="hdr-right">
-        <!-- "New Drawing" button — shown only in Draw Battle -->
-        <button class="icon-btn" id="new-draw-btn" onclick="openDrawCanvas()" title="New Drawing" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Games home -->
-    <div class="games-home" id="games-home">
-      <div class="games-grid">
-        <div class="game-category-card" onclick="openGameSection('draw-battle')">
-          <div class="gc-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg>
-          </div>
-          <div class="gc-name">Draw Battle</div>
-          <div class="gc-desc">Solo draw & upload</div>
-        </div>
-        <div class="game-category-card" style="opacity:.4;cursor:not-allowed">
-          <div class="gc-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
-          </div>
-          <div class="gc-name">Quiz Battle</div>
-          <div class="gc-desc">Coming soon</div>
-        </div>
-        <div class="game-category-card" style="opacity:.4;cursor:not-allowed">
-          <div class="gc-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div class="gc-name">Word Game</div>
-          <div class="gc-desc">Coming soon</div>
-        </div>
-        <div class="game-category-card" style="opacity:.4;cursor:not-allowed">
-          <div class="gc-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-          <div class="gc-name">Trivia</div>
-          <div class="gc-desc">Coming soon</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Draw Battle section -->
-    <div class="draw-section" id="draw-section" style="display:none">
-      <div class="draw-section-tabs">
-        <button class="ctab active" data-dtab="gallery" onclick="switchDrawTab('gallery')">Gallery</button>
-        <button class="ctab" data-dtab="mine" onclick="switchDrawTab('mine')">My Draws</button>
-      </div>
-      <div class="draw-tab-content active" id="dtab-gallery">
-        <div class="draw-gallery" id="draw-gallery"><div class="spinner"></div></div>
-      </div>
-      <div class="draw-tab-content" id="dtab-mine">
-        <div class="draw-gallery" id="draw-mine"><div class="spinner"></div></div>
-      </div>
-    </div>
-  </section>
-
   <!-- PROFILE PANEL -->
   <section class="panel" id="profile-panel">
     <div class="panel-hdr">
@@ -342,24 +275,68 @@
       <div class="posts-feed" id="my-posts"><div class="spinner"></div></div>
     </div>
   </section>
-  <!-- RANK PANEL -->
-  <section class="panel" id="rank-panel">
-    <div class="panel-hdr">
-      <svg class="hdr-icon" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-      <h2>Rankings</h2>
-    </div>
-    <div class="rank-scroll">
-      <div class="rank-tabs">
-        <button class="ctab active" data-rtab="popularity" onclick="switchRankTab('popularity')">Popularity</button>
-        <button class="ctab" data-rtab="draw"       onclick="switchRankTab('draw')">Draw Ratings</button>
-        <button class="ctab" data-rtab="brainly"    onclick="switchRankTab('brainly')">Brainly</button>
-        <button class="ctab" data-rtab="time"       onclick="switchRankTab('time')">Online Time</button>
-      </div>
-      <div id="rank-content"><div class="spinner"></div></div>
-    </div>
-  </section>
 
 </main>
+
+<!-- ═══ NOTIFICATIONS PANEL (slides from right over world) ═══ -->
+<div class="notif-panel" id="notif-panel" style="display:none">
+  <div class="notif-panel-hdr">
+    <h2>Notifications</h2>
+    <button class="icon-btn" onclick="closeNotifPanel()" style="margin-left:auto">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="notif-panel-body" id="notif-panel-body">
+    <div class="spinner"></div>
+  </div>
+</div>
+
+<!-- ═══ ABOUT / PROFILE VIEW (full screen panel, navbar visible) ═══ -->
+<div class="about-view" id="about-view" style="display:none">
+  <div class="about-hdr">
+    <button class="back-btn about-back" onclick="closeAboutView()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span id="about-title" style="font-weight:700;font-size:14px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
+    <button class="icon-btn" onclick="messageFromAbout()" id="about-msg-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Message
+    </button>
+  </div>
+  <div class="about-scroll">
+    <!-- Cover / avatar hero -->
+    <div class="about-hero">
+      <div class="about-av-ring" id="about-border-ring">
+        <img id="about-avatar" src="" alt="">
+      </div>
+      <div class="about-namerow">
+        <span id="about-name" style="font-size:20px;font-weight:800"></span>
+        <span id="about-badge"></span>
+      </div>
+      <div id="about-code" style="font-size:12px;color:var(--accent);font-weight:700"></div>
+      <div id="about-popularity" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+    </div>
+
+    <!-- About This User card -->
+    <div class="about-card">
+      <div class="about-card-title">About This User</div>
+      <div id="about-bio" class="about-bio"></div>
+      <div id="about-types" class="pp-types" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Connections -->
+    <div class="about-card">
+      <div class="about-card-title">Connections</div>
+      <div id="about-connections" class="about-connections"></div>
+    </div>
+
+    <!-- Posts -->
+    <div class="about-card about-card-posts">
+      <div class="about-card-title">Posts</div>
+      <div id="about-posts" class="posts-feed" style="padding:0"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ BRAINLY MODAL ═══ -->
 <div class="modal-overlay" id="brainly-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
@@ -596,69 +573,6 @@
   </div>
 </div>
 
-<!-- ═══ DRAW BATTLE CANVAS MODAL ═══ -->
-<div class="draw-canvas-overlay" id="draw-canvas-overlay" style="display:none">
-  <div class="draw-canvas-modal" id="draw-canvas-modal">
-    <div class="draw-canvas-hdr">
-      <div class="draw-prompt-info">
-        <div class="draw-prompt-label">Draw this</div>
-        <div class="draw-prompt-word" id="draw-prompt-word">Loading…</div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="draw-new-prompt-btn" onclick="newDrawPrompt()">New</button>
-        <button class="icon-btn" onclick="toggleDrawFs()" title="Fullscreen" style="width:28px;height:28px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-        </button>
-        <button class="icon-btn" onclick="closeDrawCanvas()" style="width:28px;height:28px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="draw-tools">
-      <div class="draw-colors" id="draw-colors"></div>
-      <input type="range" id="draw-brush" min="2" max="28" value="5" style="width:60px;accent-color:var(--accent)">
-      <button class="tool-btn" id="draw-eraser-btn" onclick="toggleDrawEraser()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M20 20H7L3 16l10-10 7 7-2.5 2.5"/><path d="M6 18l4-4"/></svg>
-      </button>
-      <button class="tool-btn" onclick="clearDrawCanvas()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-      </button>
-    </div>
-    <canvas id="solo-canvas" style="background:#fff;display:block;touch-action:none;cursor:crosshair;width:100%"></canvas>
-    <div class="draw-submit-bar">
-      <span style="font-size:12px;color:var(--muted)" id="draw-prompt-tag"></span>
-      <button class="btn" style="max-width:180px" onclick="uploadDrawing()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Post Drawing
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ DRAW DETAIL MODAL ═══ -->
-<div class="modal-overlay" id="draw-detail-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal-box draw-detail-box">
-    <button class="modal-close" onclick="document.getElementById('draw-detail-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <img id="dd-image" src="" alt="" style="width:100%;border-radius:10px;margin-bottom:10px;object-fit:contain;max-height:240px">
-    <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
-      <img id="dd-avatar" src="" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover">
-      <div><div id="dd-name" style="font-weight:700;font-size:13px"></div><div id="dd-prompt" style="font-size:11px;color:var(--muted)"></div></div>
-      <div class="star-rating" id="dd-rating-display" style="margin-left:auto"></div>
-    </div>
-    <!-- Rate -->
-    <div class="rate-row" id="dd-rate-row">
-      <span style="font-size:12px;color:var(--muted)">Your rating:</span>
-      <div class="star-input" id="dd-star-input"></div>
-    </div>
-    <!-- Comments -->
-    <div class="dd-comments" id="dd-comments"></div>
-    <div class="input-row" style="margin-top:8px">
-      <input type="text" id="dd-comment-input" placeholder="Add a comment…" maxlength="200">
-      <button class="send-btn" onclick="submitDrawComment()"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg></button>
-    </div>
-  </div>
-</div>
-
 <!-- ═══ MODALS ═══ -->
 <div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeAddModal()">
   <div class="modal-box">
@@ -676,25 +590,24 @@
   <div class="modal-box stalk-modal-box">
     <button class="modal-close" onclick="document.getElementById('profile-modal').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
 
-    <!-- Avatar + name -->
-    <div class="stalk-av-center"><div class="avatar-border-ring sm-border-ring border-ring-none" id="sm-border-ring"><img id="sm-avatar" src="" alt="" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:block"></div></div>
+    <!-- Avatar -->
+    <div class="stalk-av-center"><div class="avatar-border-ring sm-border-ring border-ring-none" id="sm-border-ring"><img id="sm-avatar" src="" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;display:block"></div></div>
     <div class="stalk-code" id="sm-code"></div>
     <div class="stalk-nameline"><span id="sm-name"></span><span id="sm-badge"></span></div>
-    <div class="stalk-popularity" id="sm-popularity" style="font-size:11px;color:var(--muted);margin-bottom:6px"></div>
+    <div id="sm-popularity" style="font-size:11px;color:var(--muted);margin-bottom:8px"></div>
 
-    <!-- About & types -->
+    <!-- Quick bio -->
     <div class="stalk-bio" id="sm-bio"></div>
-    <div class="stalk-types" id="sm-types"></div>
 
-    <!-- Action buttons -->
+    <!-- Buttons -->
     <div class="stalk-actions">
       <button class="btn" onclick="messageFromModal()" style="flex:1">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Message
       </button>
-      <button class="btn-like" id="sm-like-btn" onclick="likeProfile()" data-liked="0" style="flex:1">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        <span class="like-txt">Like</span>
+      <button class="btn-outline" onclick="openAboutView(stalkedUserId)" style="flex:1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        About
       </button>
     </div>
   </div>

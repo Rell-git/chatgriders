@@ -10,7 +10,7 @@ let typingCh=null, typingTimeout=null;
 let leaderboardTimer=null, anonMatchId=null, anonSlot=null, anonTimer=null;
 let anonSub=null, anonQueueSub=null, anonHeartShown=false, myHeartPressed=false, anonMatchesLeft=10;
 let qrInstance=null, html5QrScanner=null, tradeImageFile=null;
-let calcValue='0', calcPrev='', calcOp='', calcReset=false;
+let calcValue='0', calcPrev='', calcOp='', calcReset=false, tlTimer=null;
 let brainlyImageFile=null, brainlyAnswerTimers={};
 // Draw Battle solo
 let soloCanvas=null, soloCtx=null, drawIsDrawing=false;
@@ -67,6 +67,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(
   loadProfilePanel();
   loadMyPosts();
   subscribeIncomingDMs();
+  subscribeNotifications();
   pingLeaderboard();
   leaderboardTimer=setInterval(pingLeaderboard,60000);
   checkAnonDaily();
@@ -117,9 +118,7 @@ function switchPanel(name){
   document.getElementById(`${name}-panel`)?.classList.add('active');
   document.querySelector(`[data-panel="${name}"]`)?.classList.add('active');
   if(name==='chats'){unreadCount=0;updateDMBadge();}
-  if(name==='games'){showGamesHome();}
   if(name==='profile'){loadProfilePanel();}
-  if(name==='rank'){switchRankTab('popularity');}
 }
 function updateDMBadge(){const b=document.getElementById('dm-badge');if(!b)return;b.style.display=unreadCount>0?'':(b.style.display='none','none');b.textContent=unreadCount>9?'9+':unreadCount;}
 
@@ -199,7 +198,15 @@ function subscribeIncomingDMs(){
     const ex=document.querySelector(`.convo-item[data-uid="${sid}"]`);
     if(!ex){const{data:p}=await sb.from('profiles').select('*').eq('id',sid).single();if(p)prependConvoItem(p,pl.new.content||'Image',false);}
     else{ex.querySelector('.convo-preview').textContent=pl.new.content||'Image';const list=document.getElementById('convo-list');if(list.firstChild!==ex)list.insertBefore(ex,list.firstChild);}
-    if(activeUser!==sid){unreadCount++;updateDMBadge();const{data:p}=await sb.from('profiles').select('name,surname').eq('id',sid).single();pushNotif(`New message from ${p?displayName(p):'Someone'}`,pl.new.content||'Image');}
+    if(activeUser!==sid){
+      unreadCount++;updateDMBadge();
+      // Show notif dot on bell
+      const dot=document.getElementById('notif-dot');if(dot)dot.style.display='';
+      const{data:p}=await sb.from('profiles').select('name,surname').eq('id',sid).single();
+      pushNotif(`New message from ${p?displayName(p):'Someone'}`,pl.new.content||'Image');
+      // Create persistent notification
+      createNotif(ME.id,'message',`${p?displayName(p):'Someone'}: ${pl.new.content||'sent an image'}`,null,sid);
+    }
     else{appendPrivateMsg(pl.new);scrollBottom(document.getElementById('thread-msgs'));markSeen(pl.new.id);}
   }).subscribe();
 }
@@ -236,6 +243,7 @@ function filterConvos(q){document.querySelectorAll('#convo-list .convo-item').fo
 
 // ── Thread ────────────────────────────────────────────────────
 async function openThread(userId,name,seed,style,avatarUrl){
+  navPush({type:'panel',name:'chats'});
   activeUser=userId;
   document.getElementById('thread-panel').classList.add('active');
   document.getElementById('thread-typing').textContent='';
@@ -733,7 +741,7 @@ async function createGroup(){
   const{data:grp,error}=await sb.from('group_chats').insert({name,created_by:ME.id,expires_at:expiresAt}).select().single();
   if(error){alert('Failed: '+error.message);return;}
   await sb.from('group_members').insert({group_id:grp.id,user_id:ME.id});
-  if(codes.length){const{data:others}=await sb.from('profiles').select('id').in('user_code',codes);if(others?.length)await sb.from('group_members').insert(others.filter(o=>o.id!==ME.id).map(o=>({group_id:grp.id,user_id:o.id})));}
+  if(codes.length){const{data:others}=await sb.from('profiles').select('id').in('user_code',codes);if(others?.length){const mems=others.filter(o=>o.id!==ME.id);await sb.from('group_members').insert(mems.map(o=>({group_id:grp.id,user_id:o.id})));for(const o of mems)createNotif(o.id,'party_invite',`${displayName(ME)} invited you to "${name}"`,String(grp.id));}}
   document.getElementById('create-group-modal').style.display='none';
   await loadGroups();openGroup(grp.id,name);
 }
@@ -877,3 +885,140 @@ function rankMedal(i){return i===0?'🥇':i===1?'🥈':i===2?'🥉':`<span style
 
 
 // (rank panel loading handled in main switchPanel above)
+
+// ══════════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════════════════════════
+let notifSub=null, notifUnread=0;
+
+function openNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  panel.style.display='flex';
+  notifUnread=0;
+  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='none';
+  loadNotifications();
+}
+function closeNotifPanel(){document.getElementById('notif-panel').style.display='none';}
+
+async function loadNotifications(){
+  const body=document.getElementById('notif-panel-body');
+  const{data}=await sb.from('notifications').select('*, sender:profiles!notifications_sender_id_fkey(name,surname,avatar_seed,avatar_style,avatar_url)').eq('user_id',ME.id).order('created_at',{ascending:false}).limit(40);
+  if(!data?.length){body.innerHTML='<div class="notif-empty">No notifications yet</div>';return;}
+  body.innerHTML=data.map(n=>{
+    const p=n.sender||{};const av=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url);
+    return `<div class="notif-item${n.is_read?'':' unread'}" onclick="handleNotifClick('${n.id}','${n.type}','${n.ref_id||''}')">
+      ${n.sender?`<img src="${av}" class="notif-av">`:`<div class="notif-av-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>`}
+      <div class="notif-body-text"><strong>${escHtml(displayName(p)||'Pulseship')}</strong><p>${escHtml(n.message||'')}</p></div>
+      <span class="notif-time">${timeAgo(n.created_at)}</span>
+    </div>`;
+  }).join('');
+  // Mark all read
+  await sb.from('notifications').update({is_read:true}).eq('user_id',ME.id).eq('is_read',false);
+}
+
+async function handleNotifClick(id,type,refId){
+  if(type==='message')switchPanel('chats');
+  else if(type==='party_invite'&&refId)openGroup(parseInt(refId),'Party Room');
+  closeNotifPanel();
+}
+
+function subscribeNotifications(){
+  notifSub=sb.channel(`notif-${ME.id}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${ME.id}`},pl=>{
+    notifUnread++;
+    const dot=document.getElementById('notif-dot');if(dot)dot.style.display='';
+    // Push browser notif
+    pushNotif(pl.new.title||'Pulseship',pl.new.message||'You have a new notification');
+  }).subscribe();
+}
+
+// Create notification helper (call when someone messages / invites)
+async function createNotif(toUserId,type,message,refId,senderId){
+  await sb.from('notifications').insert({user_id:toUserId,sender_id:senderId||ME.id,type,message,ref_id:refId||null,is_read:false}).catch(()=>{});
+}
+
+// ══════════════════════════════════════════════════════════════
+// ABOUT VIEW (full-screen Facebook-style profile stalk)
+// ══════════════════════════════════════════════════════════════
+let aboutUserId=null, aboutFromPanel=null;
+
+async function openAboutView(userId){
+  if(!userId)return;
+  aboutUserId=userId;
+  // Track where they came from
+  aboutFromPanel=document.querySelector('.panel.active')?.id||null;
+  document.getElementById('profile-modal').style.display='none';
+  const view=document.getElementById('about-view');
+  view.style.display='flex';
+
+  const{data:p}=await sb.from('profiles').select('*').eq('id',userId).maybeSingle();if(!p)return;
+
+  // Hero
+  document.getElementById('about-title').textContent=displayName(p);
+  const ring=document.getElementById('about-border-ring');ring.className=`avatar-border-ring border-ring-${p.border_style||'none'}`;
+  document.getElementById('about-avatar').src=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url);
+  document.getElementById('about-name').textContent=displayName(p);
+  document.getElementById('about-badge').innerHTML=renderBadge(p.badge,p.popularity);
+  document.getElementById('about-code').textContent=`#${p.user_code||'------'}`;
+  document.getElementById('about-popularity').textContent=`${p.popularity||0} likes`;
+
+  // Hide message btn for own profile
+  const msgBtn=document.getElementById('about-msg-btn');if(msgBtn)msgBtn.style.display=userId===ME.id?'none':'flex';
+
+  // Bio + types
+  document.getElementById('about-bio').innerHTML=p.bio?linkify(p.bio):'<span style="color:var(--muted);font-size:12px">No bio yet</span>';
+  document.getElementById('about-types').innerHTML=renderTypeTags(p.user_types||[]);
+
+  // Connections (people they've DM'd)
+  loadAboutConnections(userId);
+
+  // Posts
+  const{data:posts}=await sb.from('posts').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(20);
+  document.getElementById('about-posts').innerHTML=(posts||[]).map(renderPostCard).join('')||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:14px">No posts yet</div>';
+}
+
+async function loadAboutConnections(userId){
+  const el=document.getElementById('about-connections');
+  // Get unique conversation partners
+  const{data:msgs}=await sb.from('private_messages').select('sender_id,receiver_id').or(`sender_id.eq.${userId},receiver_id.eq.${userId}`).limit(100);
+  const ids=[...new Set((msgs||[]).map(m=>m.sender_id===userId?m.receiver_id:m.sender_id))].filter(id=>id!==userId).slice(0,12);
+  if(!ids.length){el.innerHTML='<div class="about-conn-empty">No connections yet</div>';return;}
+  const{data:profs}=await sb.from('profiles').select('id,name,surname,avatar_seed,avatar_style,avatar_url').in('id',ids);
+  el.innerHTML=(profs||[]).map(p=>`<div class="about-conn-item" onclick="openAboutView('${p.id}')"><img src="${getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url)}" class="about-conn-av"><span class="about-conn-name">${escHtml(p.name||'')}</span></div>`).join('');
+}
+
+function closeAboutView(){
+  document.getElementById('about-view').style.display='none';
+  aboutUserId=null;
+}
+
+function messageFromAbout(){
+  if(!aboutUserId)return;
+  closeAboutView();
+  sb.from('profiles').select('*').eq('id',aboutUserId).single().then(({data:p})=>{if(p){switchPanel('chats');openThread(p.id,displayName(p),p.avatar_seed,p.avatar_style,p.avatar_url);}});
+}
+
+// ══════════════════════════════════════════════════════════════
+// MOBILE BACK BUTTON / NAVIGATION STACK
+// ══════════════════════════════════════════════════════════════
+let navStack=[];
+
+function navPush(state){navStack.push(state);}
+function navPop(){
+  if(!navStack.length)return;
+  const prev=navStack.pop();
+  if(prev.type==='panel')switchPanel(prev.name);
+  else if(prev.type==='thread'){openThread(prev.userId,prev.name,prev.seed,prev.style,prev.url);}
+  else if(prev.type==='about')closeAboutView();
+}
+
+// Hardware/gesture back (popstate)
+window.addEventListener('popstate',()=>{
+  if(document.getElementById('about-view').style.display!=='none'){closeAboutView();return;}
+  if(document.getElementById('notif-panel').style.display!=='none'){closeNotifPanel();return;}
+  if(document.getElementById('settings-fs').style.display!=='none'){closeSettings();return;}
+  if(document.getElementById('thread-panel').classList.contains('active')){closeThread();return;}
+  if(document.getElementById('group-thread-panel').classList.contains('active')){closeGroupThread();return;}
+});
+
+// Push a dummy history state on load so popstate fires
+window.addEventListener('load',()=>history.pushState({},'',''));
