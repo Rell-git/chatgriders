@@ -5,33 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pulseship</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0d0d1a">
+  <meta name="theme-color" content="#07070e">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Always start dark unless user previously chose light
+    const t = localStorage.getItem('ps-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  </script>
 </head>
 <body class="auth-page">
 
 <div class="auth-card">
   <div class="auth-logo">
     <div class="logo-mark">
-      <!-- Heartbeat logo -->
-      <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
-        <path d="M20 34s-14-9-14-19a8 8 0 0116 0 8 8 0 0116 0c0 10-18 19-18 19z" fill="white" opacity=".95"/>
-        <polyline points="4,20 8,20 11,14 14,26 17,18 20,22 23,20 36,20" stroke="rgba(255,100,150,.9)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+        <rect x="1" y="1" width="9.5" height="9.5" rx="2"/>
+        <rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/>
+        <rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/>
+        <path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/>
       </svg>
     </div>
     <h1>Pulseship</h1>
-    <p>Find your connection</p>
-  </div>
-
-  <!-- Light/Dark toggle -->
-  <div class="auth-theme-row">
-    <span>🌙</span>
-    <label class="toggle-switch">
-      <input type="checkbox" id="auth-theme-toggle" onchange="toggleTheme(this)">
-      <div class="tgl-track"></div>
-    </label>
-    <span>☀️</span>
+    <p>Transforming the way we share our lives.</p>
   </div>
 
   <div class="error-msg" id="error-msg"></div>
