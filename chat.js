@@ -38,24 +38,29 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(
 
 // ── INIT ─────────────────────────────────────────────────────
 (async()=>{
-  const{data:{session}}=await sb.auth.getSession();
-  if(!session) return redirect();
-  const{data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
-  if(!p) return redirect();
-  ME=p;
-  initUI();
-  initPresence();
-  cleanupWorld();
-  loadWorldChat();
-  loadConversations();
-  loadGroups();
-  loadProfilePanel();
-  loadMyPosts();
-  subscribeIncomingDMs();
-  subscribeNotifications();
-  pingLeaderboard();
-  leaderboardTimer=setInterval(pingLeaderboard,60000);
-  checkAnonDaily();
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session) return redirect();
+    const{data:p,error:pe}=await sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
+    if(pe||!p) return redirect();
+    ME=p;
+    initUI();
+    initPresence();
+    cleanupWorld().catch(()=>{});
+    loadWorldChat();
+    loadConversations().catch(()=>{});
+    loadGroups().catch(()=>{});
+    loadProfilePanel();
+    loadMyPosts().catch(()=>{});
+    subscribeIncomingDMs();
+    try{subscribeNotifications();}catch(e){}
+    pingLeaderboard().catch(()=>{});
+    leaderboardTimer=setInterval(()=>pingLeaderboard().catch(()=>{}),60000);
+    checkAnonDaily().catch(()=>{});
+  }catch(e){
+    console.error('Init error:',e);
+    redirect();
+  }
 })();
 function redirect(){window.location.href='index.html';}
 
@@ -132,13 +137,23 @@ async function pingLeaderboard(){
 // ── World chat ────────────────────────────────────────────────
 async function cleanupWorld(){await sb.rpc('cleanup_world_messages').catch(()=>{});}
 async function loadWorldChat(){
-  const{data}=await sb.from('world_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge,popularity)').order('created_at',{ascending:true}).limit(120);
-  const area=document.getElementById('world-msgs');area.innerHTML='';
-  (data||[]).forEach(m=>appendWorldMsg(m));scrollBottom(area);
-  sb.channel('world-rt').on('postgres_changes',{event:'INSERT',schema:'public',table:'world_messages'},async pl=>{
-    const{data:full}=await sb.from('world_messages').select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge,popularity)').eq('id',pl.new.id).single();
-    if(full){appendWorldMsg(full);scrollBottom(document.getElementById('world-msgs'));}
-  }).subscribe();
+  try{
+    const{data,error}=await sb.from('world_messages')
+      .select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge,popularity)')
+      .order('created_at',{ascending:true}).limit(120);
+    const area=document.getElementById('world-msgs');area.innerHTML='';
+    if(!error)(data||[]).forEach(m=>appendWorldMsg(m));
+    scrollBottom(area);
+    sb.channel('world-rt').on('postgres_changes',{event:'INSERT',schema:'public',table:'world_messages'},async pl=>{
+      const{data:full}=await sb.from('world_messages')
+        .select('*, profiles(name,surname,avatar_seed,avatar_style,avatar_url,user_code,border_style,badge,popularity)')
+        .eq('id',pl.new.id).single();
+      if(full){appendWorldMsg(full);scrollBottom(document.getElementById('world-msgs'));}
+    }).subscribe();
+  }catch(e){
+    const area=document.getElementById('world-msgs');
+    if(area)area.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Could not load messages. Check your connection.</div>';
+  }
 }
 function appendWorldMsg(msg){
   const area=document.getElementById('world-msgs');
