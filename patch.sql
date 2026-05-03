@@ -138,3 +138,41 @@ create index if not exists idx_pm_sender   on private_messages(sender_id, create
 create index if not exists idx_pm_receiver on private_messages(receiver_id, created_at desc);
 create index if not exists idx_user_code   on profiles(user_code);
 create index if not exists idx_draw_room   on draw_strokes(room_id, created_at desc);
+
+-- Draw Battle tables
+create table if not exists draw_battles (
+  id            bigint generated always as identity primary key,
+  user_id       uuid references profiles(id) on delete cascade not null,
+  image_url     text not null,
+  prompt        text,
+  category      text,
+  avg_rating    numeric(3,1) default 0,
+  comment_count int default 0,
+  created_at    timestamptz default now()
+);
+create table if not exists draw_ratings (
+  draw_id bigint references draw_battles(id) on delete cascade not null,
+  user_id uuid references profiles(id) on delete cascade not null,
+  rating  int check (rating between 1 and 5) not null,
+  primary key (draw_id, user_id)
+);
+create table if not exists draw_comments (
+  id         bigint generated always as identity primary key,
+  draw_id    bigint references draw_battles(id) on delete cascade not null,
+  user_id    uuid references profiles(id) on delete cascade not null,
+  content    text not null,
+  created_at timestamptz default now()
+);
+do $$ begin alter table draw_battles  enable row level security; exception when others then null; end $$;
+do $$ begin alter table draw_ratings  enable row level security; exception when others then null; end $$;
+do $$ begin alter table draw_comments enable row level security; exception when others then null; end $$;
+do $$ begin create policy "db_sel" on draw_battles  for select  to authenticated using (true);         exception when others then null; end $$;
+do $$ begin create policy "db_ins" on draw_battles  for insert  to authenticated with check (auth.uid()=user_id); exception when others then null; end $$;
+do $$ begin create policy "db_upd" on draw_battles  for update  to authenticated using (true);         exception when others then null; end $$;
+do $$ begin create policy "dr_sel" on draw_ratings  for select  to authenticated using (true);         exception when others then null; end $$;
+do $$ begin create policy "dr_ins" on draw_ratings  for insert  to authenticated with check (auth.uid()=user_id); exception when others then null; end $$;
+do $$ begin create policy "dr_upd" on draw_ratings  for update  to authenticated using (auth.uid()=user_id); exception when others then null; end $$;
+do $$ begin create policy "dc_sel" on draw_comments for select  to authenticated using (true);         exception when others then null; end $$;
+do $$ begin create policy "dc_ins" on draw_comments for insert  to authenticated with check (auth.uid()=user_id); exception when others then null; end $$;
+do $$ begin create index if not exists idx_draw_user on draw_battles(user_id); exception when others then null; end $$;
+do $$ begin create index if not exists idx_draw_cmts on draw_comments(draw_id); exception when others then null; end $$;
