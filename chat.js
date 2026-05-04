@@ -2,6 +2,23 @@
 // PULSESHIP — chat.js  v9
 // ============================================================
 
+// ── Global error safety net ───────────────────────────────────
+window.addEventListener('error', e => console.error('JS Error:', e.message, e.filename, e.lineno));
+window.addEventListener('unhandledrejection', e => console.error('Promise rejection:', e.reason));
+
+// Spinner timeout — show error after 12s if still loading
+setTimeout(()=>{
+  const w=document.getElementById('world-msgs');
+  if(w&&w.innerHTML.includes('spinner')){
+    w.innerHTML=`<div style="padding:30px 20px;text-align:center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" width="32" height="32" style="margin-bottom:10px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div style="font-weight:700;margin-bottom:6px">Connection timeout</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Could not reach the server. Check your internet or try again.</div>
+      <button class="btn" style="max-width:200px" onclick="location.reload()">Retry</button>
+    </div>`;
+  }
+},12000);
+
 let ME=null, activeUser=null, activeGroup=null, stalkedUserId=null;
 let privateSub=null, groupSub=null, incomingDMSub=null, presenceCh=null;
 let unreadCount=0, editAvatarSeed=null, editAvatarStyle=null, editTypesArr=[];
@@ -39,17 +56,23 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(
 // ── INIT ─────────────────────────────────────────────────────
 (async()=>{
   try{
-    const{data:{session}}=await sb.auth.getSession();
-    if(!session) return redirect();
+    const{data:{session},error:se}=await sb.auth.getSession();
+    if(se||!session){console.error('No session',se?.message);return redirect();}
     const{data:p,error:pe}=await sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
-    if(pe||!p) return redirect();
+    if(pe){
+      console.error('Profile DB error:',pe.message);
+      const w=document.getElementById('world-msgs');
+      if(w)w.innerHTML=`<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">DB Error: ${pe.message}<br><br><button class="btn" style="max-width:180px" onclick="location.reload()">Retry</button></div>`;
+      return;
+    }
+    if(!p){console.warn('No profile');return redirect();}
     ME=p;
-    initUI();
-    initPresence();
+    try{initUI();}catch(e){console.error('initUI:',e);}
+    try{initPresence();}catch(e){}
     cleanupWorld().catch(()=>{});
     loadWorldChat();
-    loadConversations().catch(()=>{});
-    loadGroups().catch(()=>{});
+    loadConversations().catch(e=>console.warn('convos:',e));
+    loadGroups().catch(e=>console.warn('groups:',e));
     loadProfilePanel();
     loadMyPosts().catch(()=>{});
     subscribeIncomingDMs();
@@ -58,8 +81,9 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(
     leaderboardTimer=setInterval(()=>pingLeaderboard().catch(()=>{}),60000);
     checkAnonDaily().catch(()=>{});
   }catch(e){
-    console.error('Init error:',e);
-    redirect();
+    console.error('Fatal init:',e);
+    const w=document.getElementById('world-msgs');
+    if(w)w.innerHTML=`<div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">Error: ${e.message||e}<br><br><button class="btn" style="max-width:180px" onclick="location.reload()">Retry</button></div>`;
   }
 })();
 function redirect(){window.location.href='index.html';}
