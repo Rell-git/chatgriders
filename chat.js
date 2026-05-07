@@ -537,7 +537,7 @@ function calcAction(v){
 }
 
 // Translator
-let tlTimer=null;
+
 async function translateNow(){const txt=document.getElementById('tl-input')?.value.trim();const out=document.getElementById('tl-output');if(!txt){if(out)out.textContent='Translation will appear here';return;}const from=document.getElementById('tl-from')?.value,to=document.getElementById('tl-to')?.value;if(out)out.textContent='Translating…';try{const res=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(txt)}&langpair=${from}|${to}`);const d=await res.json();const t=d.responseData?.translatedText;if(out)out.textContent=(t&&t!==txt&&!t.toLowerCase().includes('mymemory'))?t:'diko alam yan';}catch{if(out)out.textContent='diko alam yan';}}
 function translateDebounce(){clearTimeout(tlTimer);tlTimer=setTimeout(translateNow,700);}
 function swapLangs(){const f=document.getElementById('tl-from'),t=document.getElementById('tl-to'),tmp=f.value;f.value=t.value;t.value=tmp;translateNow();}
