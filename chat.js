@@ -869,13 +869,18 @@ window.addEventListener('popstate',()=>{
   if(document.getElementById('group-thread-panel').classList.contains('active')){closeGroupThread();return;}
 });
 
-// Push a dummy history state on load so popstate fires
-window.addEventListener('load',()=>history.pushState({},'',''));
+async function subscribePush() {
+  const reg = await navigator.serviceWorker.ready;
 
-const reg = await navigator.serviceWorker.ready;
-const sub = await reg.pushManager.subscribe({
-  userVisibleOnly: true,
-  applicationServerKey: 'BK8EFn9FA66z1Qh7BuOhwMnuJh7ksTn6jW8iwFxhRH68HrMJOaCVE3gcLmqz_FgmKvVMd52QNwcE7ypKUnwSsoA'
-});
-// Save sub to Supabase push_subscriptions table
-await sb.from('push_subscriptions').upsert({ user_id: ME.id, subscription: JSON.stringify(sub) });
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: 'BK8EFn9FA66z1Qh7BuOhwMnuJh7ksTn6jW8iwFxhRH68HrMJOaCVE3gcLmqz_FgmKvVMd52QNwcE7ypKUnwSsoA'
+  });
+
+  await sb.from('push_subscriptions').upsert({
+    user_id: ME.id,
+    subscription: JSON.stringify(sub)
+  });
+
+  console.log('Push subscribed!');
+}
