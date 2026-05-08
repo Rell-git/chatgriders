@@ -213,13 +213,19 @@ body{
 .convo-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .convo-preview{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* Thread/Group thread panels — desktop: absolute beside chats */
+/* Thread/Group thread panels */
 #thread-panel,#group-thread-panel{
-  position:absolute;top:0;right:0;background:var(--bg);z-index:5;
-  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  position:absolute;top:0;right:0;bottom:0;
+  background:var(--bg);z-index:5;
   width:calc(100% - var(--nav-w) - var(--panel-w));
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
 }
 #thread-panel.active,#group-thread-panel.active{transform:translateX(0);display:flex;}
+/* Desktop: thread sits right of chats list, not absolute */
+@media(min-width:641px){
+  #thread-panel,#group-thread-panel{position:relative;top:auto;right:auto;bottom:auto;width:auto;transform:none;transition:none;}
+  #thread-panel:not(.active),#group-thread-panel:not(.active){display:none;}
+}
 
 /* ═══ CARD MESSAGES ══════════════════════════════════════════ */
 /* Poll */
@@ -740,3 +746,29 @@ body{
 .brainly-footer{display:flex;align-items:center;gap:6px;padding:0 10px 10px;}
 .brainly-answer-input{flex:1;background:var(--sur2);border:1px solid var(--bor2);border-radius:20px;padding:6px 11px;color:var(--text);font-size:12px;font-family:var(--font);outline:none;}
 .brainly-answer-input:focus{border-color:var(--accent);}
+/* ═══ MATCH ONLINE USERS ══════════════════════════════════ */
+.match-online-section{width:100%;max-width:320px;background:var(--sur2);border:1px solid var(--bor2);border-radius:12px;padding:11px 14px;margin-top:4px;}
+.match-online-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:9px;}
+.match-online-avatars{display:flex;flex-wrap:wrap;gap:6px;}
+.match-online-av{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--bor2);}
+
+/* ═══ DESKTOP LAYOUT FIX ══════════════════════════════════ */
+@media(min-width:641px){
+  .main-content{display:flex;flex-direction:row;flex:1;overflow:hidden;}
+  /* Chats panel fixed width */
+  #chats-panel{width:var(--panel-w);flex-shrink:0;border-right:1px solid var(--border);}
+  #chats-panel.active{display:flex;flex:unset;}
+  /* Thread fills remaining space */
+  #thread-panel,#group-thread-panel{flex:1;min-width:0;}
+  #thread-panel.active,#group-thread-panel.active{display:flex;}
+  /* Profile panel fills space */
+  #profile-panel.active{flex:1;}
+  /* World panel fills space */
+  #world-panel.active{flex:1;}
+}
+
+/* ═══ ABOUT VIEW TWEAKS ═══════════════════════════════════ */
+.about-card .post-card{border:none;border-bottom:1px solid var(--border);border-radius:0;padding:12px 0;}
+.about-card .post-card:last-child{border-bottom:none;}
+.about-hero{padding:20px 16px 14px;}
+.about-av-ring img{width:80px;height:80px;}

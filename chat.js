@@ -489,7 +489,30 @@ async function addGroupMember(){const code=document.getElementById('add-member-c
 // ══════════════════════════════════════════════════════════════
 // ANONYMOUS MATCH
 // ══════════════════════════════════════════════════════════════
-async function checkAnonDaily(){const today=new Date().toISOString().split('T')[0];const{data}=await sb.from('anon_daily').select('count').eq('user_id',ME.id).eq('date',today).maybeSingle();anonMatchesLeft=Math.max(0,10-(data?.count||0));const el=document.getElementById('match-daily-count');if(el)el.textContent=`${anonMatchesLeft} left today`;const btn=document.getElementById('match-start-btn');if(btn){btn.disabled=anonMatchesLeft<=0;if(anonMatchesLeft<=0)btn.textContent='Come back tomorrow!';}}
+async function checkAnonDaily(){
+  const today=new Date().toISOString().split('T')[0];
+  const{data}=await sb.from('anon_daily').select('count').eq('user_id',ME.id).eq('date',today).maybeSingle();
+  anonMatchesLeft=Math.max(0,10-(data?.count||0));
+  const el=document.getElementById('match-daily-count');
+  if(el)el.textContent=`${anonMatchesLeft} left today`;
+  const btn=document.getElementById('match-start-btn');
+  if(btn){btn.disabled=anonMatchesLeft<=0;if(anonMatchesLeft<=0)btn.textContent='Come back tomorrow!';}
+  loadMatchOnlineUsers();
+}
+
+async function loadMatchOnlineUsers(){
+  // Show users currently in the anon queue
+  const{data}=await sb.from('anon_queue').select('user_id, profiles(name,surname,avatar_seed,avatar_style,avatar_url)').limit(12).catch(()=>({data:[]}));
+  const count=document.getElementById('match-online-count');
+  const avatars=document.getElementById('match-online-avatars');
+  if(!count||!avatars)return;
+  const users=(data||[]).filter(r=>r.user_id!==ME?.id);
+  count.textContent=users.length>0?`${users.length} ready to match`:'No one queued yet — be first!';
+  avatars.innerHTML=users.slice(0,8).map(r=>{
+    const p=r.profiles||{};
+    return `<img src="${getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url)}" class="match-online-av" title="${escHtml(displayName(p))}">`;
+  }).join('');
+}
 function openMatchFs(){if(anonMatchesLeft<=0)return;const fs=document.getElementById('match-fs');fs.style.display='flex';document.getElementById('match-fs-waiting').style.display='';document.getElementById('match-fs-chat').style.display='none';document.getElementById('match-fs-ended').style.display='none';document.getElementById('mfs-avatar').src=getAvatar(ME.avatar_seed,ME.avatar_style,ME.avatar_url);document.getElementById('mfs-daily').textContent=`${anonMatchesLeft} left today`;startMatching();}
 async function startMatching(){await sb.from('anon_queue').upsert({user_id:ME.id,joined_at:new Date().toISOString()});const{data:others}=await sb.from('anon_queue').select('user_id').neq('user_id',ME.id).order('joined_at',{ascending:true}).limit(1);if(others?.length){const pid=others[0].user_id;await sb.from('anon_queue').delete().in('user_id',[ME.id,pid]);const{data:match}=await sb.from('anon_matches').insert({user1_id:ME.id,user2_id:pid}).select().single();if(match){anonSlot=1;startAnonChat(match);}}else{if(anonQueueSub)sb.removeChannel(anonQueueSub);anonQueueSub=sb.channel(`queue-${ME.id}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'anon_matches',filter:`user2_id=eq.${ME.id}`},pl=>{if(anonSlot)return;anonSlot=2;startAnonChat(pl.new);sb.removeChannel(anonQueueSub);}).subscribe();}}
 async function startAnonChat(match){anonMatchId=match.id;anonHeartShown=false;myHeartPressed=false;document.getElementById('match-fs-waiting').style.display='none';document.getElementById('match-fs-chat').style.display='flex';document.getElementById('anon-msgs').innerHTML='';document.getElementById('heart-btn').style.display='none';const today=new Date().toISOString().split('T')[0];const{data:ex}=await sb.from('anon_daily').select('count').eq('user_id',ME.id).eq('date',today).maybeSingle();if(ex)await sb.from('anon_daily').update({count:(ex.count||0)+1}).eq('user_id',ME.id).eq('date',today);else await sb.from('anon_daily').insert({user_id:ME.id,date:today,count:1});anonMatchesLeft=Math.max(0,anonMatchesLeft-1);if(anonSub)sb.removeChannel(anonSub);anonSub=sb.channel(`anon-${anonMatchId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'anon_messages',filter:`match_id=eq.${anonMatchId}`},pl=>{if(pl.new.slot!==anonSlot){const el=document.createElement('div');el.className='msg';el.innerHTML=`<div class="msg-body" style="max-width:80%"><div class="msg-bubble">${linkify(pl.new.content)}</div></div>`;document.getElementById('anon-msgs').appendChild(el);scrollBottom(document.getElementById('anon-msgs'));}}).on('postgres_changes',{event:'UPDATE',schema:'public',table:'anon_matches',filter:`id=eq.${anonMatchId}`},pl=>{if(pl.new.user1_heart&&pl.new.user2_heart)bothHeart();else if((anonSlot===1&&pl.new.user2_heart)||(anonSlot===2&&pl.new.user1_heart)){const btn=document.getElementById('heart-btn');btn.style.display='';btn.textContent='💌';}}).subscribe();let secs=120;anonTimer=setInterval(()=>{secs--;const m=Math.floor(secs/60),s=secs%60;document.getElementById('match-timer-text').textContent=`${m}:${String(s).padStart(2,'0')}`;if(secs===60&&!anonHeartShown){anonHeartShown=true;document.getElementById('heart-btn').style.display='';}if(secs<=0){clearInterval(anonTimer);timeUp();}},1000);}
@@ -570,30 +593,39 @@ function selectCreateType(t){
 
 // Load rank when panel opens — handled by main switchPanel above
 async function createGroup(){
-  const name=document.getElementById('group-name-input').value.trim();if(!name)return alert('Name required.');
-  const codes=document.getElementById('group-members-input').value.split(',').map(s=>s.trim().replace('#','').padStart(6,'0')).filter(Boolean);
-  const durEl=document.getElementById('group-duration-input');
-  const durationMins=partyType==='temp'&&durEl?parseInt(durEl.value)||0:0;
-  const expiresAt=durationMins>0?new Date(Date.now()+durationMins*60000).toISOString():null;
+  const name=document.getElementById('group-name-input')?.value.trim();
+  if(!name)return alert('Room name required.');
+  const codes=(document.getElementById('group-members-input')?.value||'').split(',').map(s=>s.trim().replace('#','').padStart(6,'0')).filter(Boolean);
+  // Always 8-hour temporary rooms
+  const expiresAt=new Date(Date.now()+8*60*60*1000).toISOString();
   const{data:grp,error}=await sb.from('group_chats').insert({name,created_by:ME.id,expires_at:expiresAt}).select().single();
   if(error){alert('Failed: '+error.message);return;}
   await sb.from('group_members').insert({group_id:grp.id,user_id:ME.id});
-  if(codes.length){const{data:others}=await sb.from('profiles').select('id').in('user_code',codes);if(others?.length){const mems=others.filter(o=>o.id!==ME.id);await sb.from('group_members').insert(mems.map(o=>({group_id:grp.id,user_id:o.id})));for(const o of mems)createNotif(o.id,'party_invite',`${displayName(ME)} invited you to "${name}"`,String(grp.id));}}
+  if(codes.length){
+    const{data:others}=await sb.from('profiles').select('id').in('user_code',codes);
+    if(others?.length){
+      const mems=others.filter(o=>o.id!==ME.id);
+      await sb.from('group_members').insert(mems.map(o=>({group_id:grp.id,user_id:o.id})));
+      for(const o of mems)createNotif(o.id,'party_invite',`${displayName(ME)} invited you to "${name}"`,String(grp.id));
+    }
+  }
   document.getElementById('create-group-modal').style.display='none';
+  document.getElementById('group-name-input').value='';
+  document.getElementById('group-members-input').value='';
   await loadGroups();openGroup(grp.id,name);
 }
 
 async function loadGroups(){
-  // Delete expired groups
   await sb.from('group_chats').delete().lt('expires_at',new Date().toISOString()).not('expires_at','is',null).catch(()=>{});
   const{data:mems}=await sb.from('group_members').select('group_id').eq('user_id',ME.id);
   const list=document.getElementById('group-list');
   if(!mems?.length){list.innerHTML='<div class="convo-empty">No party rooms yet.</div>';return;}
   const{data:groups}=await sb.from('group_chats').select('*').in('id',mems.map(m=>m.group_id)).order('created_at',{ascending:false});
-  list.innerHTML=(groups||[]).map(g=>{
-    const isTemp=!!g.expires_at;
-    const remaining=isTemp?Math.max(0,Math.floor((new Date(g.expires_at)-Date.now())/60000)):null;
-    const timerTxt=isTemp?(remaining>0?`⏱ ${remaining}m left`:'Expired'):'';
+  if(!groups?.length){list.innerHTML='<div class="convo-empty">No party rooms yet</div>';return;}
+  list.innerHTML=groups.map(g=>{
+    const ms=g.expires_at?Math.max(0,new Date(g.expires_at)-Date.now()):0;
+    const hrs=Math.floor(ms/3600000),mins=Math.floor((ms%3600000)/60000);
+    const timerTxt=g.expires_at?(ms>0?`${hrs}h ${mins}m left`:'Expired'):'';
     return `<div class="convo-item" data-gid="${g.id}" onclick="openGroup(${g.id},'${escAttr(g.name)}')">
       <div class="convo-av" style="background:var(--glow);display:flex;align-items:center;justify-content:center;color:var(--accent)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -602,9 +634,8 @@ async function loadGroups(){
         <div class="convo-name">${escHtml(g.name)}</div>
         <div class="convo-preview">${timerTxt||'Party Room'}</div>
       </div>
-      ${isTemp?'<div class="party-badge">TEMP</div>':''}
     </div>`;
-  }).join('')||'<div class="convo-empty">No party rooms yet</div>';
+  }).join('');
 }
 
 async function leaveGroup(){
@@ -738,36 +769,60 @@ let aboutUserId=null, aboutFromPanel=null;
 async function openAboutView(userId){
   if(!userId)return;
   aboutUserId=userId;
-  // Track where they came from
   aboutFromPanel=document.querySelector('.panel.active')?.id||null;
   document.getElementById('profile-modal').style.display='none';
   const view=document.getElementById('about-view');
   view.style.display='flex';
 
-  const{data:p}=await sb.from('profiles').select('*').eq('id',userId).maybeSingle();if(!p)return;
+  const{data:p}=await sb.from('profiles').select('*').eq('id',userId).maybeSingle();
+  if(!p){view.style.display='none';return;}
 
   // Hero
   document.getElementById('about-title').textContent=displayName(p);
-  const ring=document.getElementById('about-border-ring');ring.className=`avatar-border-ring border-ring-${p.border_style||'none'}`;
+  const ring=document.getElementById('about-border-ring');
+  ring.className=`avatar-border-ring border-ring-${p.border_style||'none'}`;
   document.getElementById('about-avatar').src=getAvatar(p.avatar_seed,p.avatar_style,p.avatar_url);
   document.getElementById('about-name').textContent=displayName(p);
   document.getElementById('about-badge').innerHTML=renderBadge(p.badge,p.popularity);
   document.getElementById('about-code').textContent=`#${p.user_code||'------'}`;
   document.getElementById('about-popularity').textContent=`${p.popularity||0} likes`;
 
-  // Hide message btn for own profile
-  const msgBtn=document.getElementById('about-msg-btn');if(msgBtn)msgBtn.style.display=userId===ME.id?'none':'flex';
+  // Message btn — hide for own profile
+  const msgBtn=document.getElementById('about-msg-btn');
+  if(msgBtn)msgBtn.style.display=userId===ME.id?'none':'flex';
 
-  // Bio + types
-  document.getElementById('about-bio').innerHTML=p.bio?linkify(p.bio):'<span style="color:var(--muted);font-size:12px">No bio yet</span>';
+  // Bio
+  document.getElementById('about-bio').innerHTML=p.bio?linkify(p.bio):'<span style="color:var(--muted);font-size:12px">No bio yet.</span>';
   document.getElementById('about-types').innerHTML=renderTypeTags(p.user_types||[]);
 
-  // Connections (people they've DM'd)
+  // Connections
   loadAboutConnections(userId);
 
-  // Posts
-  const{data:posts}=await sb.from('posts').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(20);
-  document.getElementById('about-posts').innerHTML=(posts||[]).map(renderPostCard).join('')||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:14px">No posts yet</div>';
+  // Posts (with delete button if own profile)
+  const isOwn=userId===ME.id;
+  const{data:posts}=await sb.from('posts').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(30);
+  const postsEl=document.getElementById('about-posts');
+  if(!posts?.length){
+    postsEl.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:14px">No posts yet</div>';
+  }else{
+    postsEl.innerHTML=posts.map(post=>`
+      <div class="post-card" id="post-${post.id}">
+        ${post.content?`<div class="post-text">${linkify(post.content)}</div>`:''}
+        ${post.image_url?`<img class="post-img" src="${escHtml(post.image_url)}" loading="lazy" onclick="openImgFull(this.src)">`:''}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px">
+          <span class="post-time">${timeAgo(post.created_at)}</span>
+          ${isOwn?`<button onclick="deletePost(${post.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;display:flex;align-items:center" title="Delete">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>`:''}
+        </div>
+      </div>`).join('');
+  }
+}
+
+async function deletePost(postId){
+  if(!confirm('Delete this post?'))return;
+  await sb.from('posts').delete().eq('id',postId).eq('user_id',ME.id);
+  document.getElementById(`post-${postId}`)?.remove();
 }
 
 async function loadAboutConnections(userId){
@@ -816,3 +871,11 @@ window.addEventListener('popstate',()=>{
 
 // Push a dummy history state on load so popstate fires
 window.addEventListener('load',()=>history.pushState({},'',''));
+
+const reg = await navigator.serviceWorker.ready;
+const sub = await reg.pushManager.subscribe({
+  userVisibleOnly: true,
+  applicationServerKey: 'BK8EFn9FA66z1Qh7BuOhwMnuJh7ksTn6jW8iwFxhRH68HrMJOaCVE3gcLmqz_FgmKvVMd52QNwcE7ypKUnwSsoA'
+});
+// Save sub to Supabase push_subscriptions table
+await sb.from('push_subscriptions').upsert({ user_id: ME.id, subscription: JSON.stringify(sub) });
