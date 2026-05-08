@@ -109,6 +109,34 @@ async function requestNotifPermission(){
   const btn=document.getElementById('notif-btn'),status=document.getElementById('notif-status');
   if(!('Notification' in window)){if(status)status.textContent='Not supported on this browser.';return;}
   const p=await Notification.requestPermission();
+  if (p === 'granted') {
+  const reg = await navigator.serviceWorker.ready;
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = atob(base64);
+
+    return Uint8Array.from(
+      [...rawData].map(char => char.charCodeAt(0))
+    );
+  }
+
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(
+      'BK8EFn9FA66z1Qh7BuOhwMnuJh7ksTn6jW8iwFxhRH68HrMJOaCVE3gcLmqz_FgmKvVMd52QNwcE7ypKUnwSsoA'
+    )
+  });
+
+  await sb.from('push_subscriptions').upsert({
+    user_id: ME.id,
+    subscription: JSON.stringify(sub)
+  });
+}
   if(status) status.textContent=p==='granted'?'Notifications enabled!':p==='denied'?'Blocked — enable in browser settings':'Not enabled';
   if(btn) btn.style.display=p==='granted'?'none':'';
 }
