@@ -1,7 +1,7 @@
 {
-  "name": "Wavezovvo",
-  "short_name": "Wavezovvo",
-  "description": "Wavezovvo is a dynamic communication platform designed to bring people together through seamless messaging and collaboration. With its user-friendly interface and powerful features, Wavezovvo enables users to connect, share ideas, and work together in real-time. Whether you're looking to chat with friends, collaborate on projects, or stay connected with colleagues, Wavezovvo provides a versatile and engaging environment for all your communication needs.",
+  "name": "Webzovvo",
+  "short_name": "Webzo",
+  "description": "Webzovvo is a dynamic communication platform designed to bring people together through seamless messaging and collaboration. With its user-friendly interface and powerful features, Webzovvo enables users to connect, share ideas, and work together in real-time. Whether you're looking to chat with friends, collaborate on projects, or stay connected with colleagues, Webzovvo provides a versatile and engaging environment for all your communication needs.",
   "start_url": "/chat.html",
   "display": "standalone",
   "orientation": "portrait",
