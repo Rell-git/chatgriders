@@ -444,6 +444,15 @@
       </button>
 
       <div class="sl-section">Session</div>
+      <!-- Admin section — only visible for user #000111 -->
+      <div id="admin-section" style="display:none">
+        <div class="sl-section" style="color:var(--danger)">Admin Panel</div>
+        <button class="sl-row" onclick="openSPage('sp-admin')" style="color:var(--danger)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Send Notification to All</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
       <button class="sl-row" onclick="doLogout()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Sign Out / Switch Account</span>
@@ -479,7 +488,61 @@
   <div class="spage" id="sp-privacy-center"><div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Privacy Center</h2></div><div class="spage-body legal-body" id="sp-privacy-center-body"></div></div>
   <div class="spage" id="sp-privacy-policy"><div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Privacy Policy</h2></div><div class="spage-body legal-body" id="sp-privacy-policy-body"></div></div>
   <div class="spage" id="sp-help"><div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>Help Center</h2></div><div class="spage-body legal-body" id="sp-help-body"></div></div>
-  <div class="spage" id="sp-about"><div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>About</h2></div><div class="spage-body" style="text-align:center;padding:30px 20px"><div style="width:64px;height:64px;background:linear-gradient(135deg,var(--accent),#a78bfa);border-radius:18px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px var(--glow)"><svg width="34" height="34" viewBox="0 0 24 24" fill="white"><rect x="1" y="1" width="9.5" height="9.5" rx="2"/><rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/><rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/><path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/></svg></div><h2 style="font-size:22px;font-weight:800;margin-bottom:4px">Pulseship</h2><p style="color:var(--muted);font-size:13px;margin-bottom:16px">v1.0.0 · by webzovvo</p><p style="font-size:13px;line-height:1.7;color:var(--muted)">Real-time chat, group messaging, anonymous matching, draw battles, and more. Built with Supabase + vanilla JS.</p><div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)"><p>Contact: <a href="mailto:webzovvo@gmail.com" class="chat-link">webzovvo@gmail.com</a></p><p>Admin: User #000111</p></div></div></div>
+  <div class="spage" id="sp-about"><div class="spage-hdr"><button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button><h2>About</h2></div><div class="spage-body" style="text-align:center;padding:30px 20px"><div style="width:64px;height:64px;background:linear-gradient(135deg,var(--accent),#a78bfa);border-radius:18px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px var(--glow)"><svg width="34" height="34" viewBox="0 0 24 24" fill="white"><rect x="1" y="1" width="9.5" height="9.5" rx="2"/><rect x="13.5" y="1" width="9.5" height="9.5" rx="2"/><rect x="1" y="13.5" width="9.5" height="9.5" rx="2"/><path d="M13.5 13.5h9.5v6.5a1.5 1.5 0 01-1.5 1.5H17l-2.5 2.5V21.5h-.5a1.5 1.5 0 01-1.5-1.5v-5a1.5 1.5 0 011.5-1.5z"/></svg></div><h2 style="font-size:22px;font-weight:800;margin-bottom:4px">Pulseship</h2><p style="color:var(--muted);font-size:13px;margin-bottom:16px">v1.0.0 · by webzovvo</p><p style="font-size:13px;line-height:1.7;color:var(--muted)">Real-time chat, group messaging, anonymous matching, and more. Built with Supabase + vanilla JS.</p><div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)"><p>Contact: <a href="mailto:webzovvo@gmail.com" class="chat-link">webzovvo@gmail.com</a></p><p>Admin: User #000111</p></div></div></div>
+
+  <!-- ADMIN PANEL — only for #000111 -->
+  <div class="spage" id="sp-admin">
+    <div class="spage-hdr">
+      <button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 style="color:var(--danger)">Admin Panel</h2>
+    </div>
+    <div class="spage-body" style="padding:20px 16px">
+      <div class="form-group">
+        <label>Notification Title *</label>
+        <input type="text" id="admin-notif-title" placeholder="e.g. New Feature!" maxlength="80">
+      </div>
+      <div class="form-group">
+        <label>Message *</label>
+        <textarea id="admin-notif-body" placeholder="Type your announcement…" rows="4" maxlength="300"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Target</label>
+        <select id="admin-notif-target">
+          <option value="all">All Users</option>
+          <option value="single">Single User (enter code below)</option>
+        </select>
+      </div>
+      <div class="form-group" id="admin-target-code-row" style="display:none">
+        <label>User Code</label>
+        <div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="admin-target-code" placeholder="000001" maxlength="6"></div>
+      </div>
+      <button class="btn" style="background:var(--danger)" onclick="sendAdminNotif()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Send to All Users
+      </button>
+      <div id="admin-notif-status" style="margin-top:12px;font-size:12px;color:var(--muted);text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL — #000111 only -->
+  <div class="spage" id="sp-admin">
+    <div class="spage-hdr">
+      <button class="spage-back" onclick="closeSPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 style="color:var(--danger)">Admin Panel</h2>
+    </div>
+    <div class="spage-body" style="padding:20px 16px">
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 13px;margin-bottom:16px;font-size:12px;color:var(--danger)">
+        Only visible to admin account #000111
+      </div>
+      <div class="form-group"><label>Notification Title</label><input type="text" id="admin-notif-title" placeholder="e.g. New Feature!" maxlength="80"></div>
+      <div class="form-group"><label>Message</label><textarea id="admin-notif-body" rows="3" maxlength="200" placeholder="What do you want to tell all users?"></textarea></div>
+      <button class="btn" onclick="sendAdminNotif()" style="background:var(--danger)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Send to All Users
+      </button>
+      <div id="admin-notif-status" style="margin-top:10px;font-size:12px;color:var(--muted);text-align:center"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ FULLSCREEN MATCH ═══ -->
@@ -568,12 +631,20 @@
 
 <!-- ═══ MODALS ═══ -->
 <div class="modal-overlay" id="add-modal" style="display:none" onclick="if(event.target===this)closeAddModal()">
-  <div class="modal-box">
+  <div class="modal-box" style="max-height:85vh;display:flex;flex-direction:column">
     <div class="modal-hdr"><h3>Add Contact</h3><button class="modal-close" onclick="closeAddModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <p class="modal-sub">Enter their user code</p>
-    <div class="form-group" style="margin-bottom:10px"><div class="code-input-wrap"><span class="code-prefix">#</span><input type="text" id="add-code-input" placeholder="000001" maxlength="6" inputmode="numeric"></div></div>
+    <p class="modal-sub">Enter code or pick from the list</p>
+    <div class="form-group" style="margin-bottom:8px">
+      <div class="code-input-wrap">
+        <span class="code-prefix">#</span>
+        <input type="text" id="add-code-input" placeholder="000001" maxlength="6" inputmode="numeric" oninput="filterAllUsers(this.value)">
+      </div>
+    </div>
     <div id="add-result"></div>
-    <button class="btn" onclick="searchByCode()">Search</button>
+    <button class="btn" onclick="searchByCode()" style="margin-bottom:12px">Search by Code</button>
+    <!-- All users list -->
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">All Users</div>
+    <div id="all-users-list" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0;border-top:1px solid var(--border)"><div class="spinner"></div></div>
   </div>
 </div>
 

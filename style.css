@@ -772,3 +772,13 @@ body{
 .about-card .post-card:last-child{border-bottom:none;}
 .about-hero{padding:20px 16px 14px;}
 .about-av-ring img{width:80px;height:80px;}
+/* ═══ ACCENT COLOR TRANSITION ════════════════════════════════ */
+body,button,.btn,.send-btn,.nav-btn.active,.spage-hdr h2{transition:color .3s,background .3s,border-color .3s,box-shadow .3s;}
+
+/* ═══ LIGHT MODE DEFAULT FIX ═════════════════════════════════ */
+:root{--bg:#f4f4ff;--surface:#ffffff;--sur2:#eeeefc;--sur3:#e5e5fa;--border:#dcdcf5;--bor2:#ccccee;--text:#0f0f28;--muted:#6868a0;--online:#16a34a;--danger:#dc2626;}
+[data-theme="dark"]{--bg:#07070e;--surface:#0e0e1c;--sur2:#141428;--sur3:#1a1a32;--border:#1f1f3a;--bor2:#2a2a48;--text:#e8e8f8;--muted:#5a5a80;--online:#22d47a;--danger:#f04444;}
+[data-theme="light"]{--bg:#f4f4ff;--surface:#ffffff;--sur2:#eeeefc;--sur3:#e5e5fa;--border:#dcdcf5;--bor2:#ccccee;--text:#0f0f28;--muted:#6868a0;--online:#16a34a;--danger:#dc2626;}
+
+/* ═══ ADMIN PANEL ════════════════════════════════════════════ */
+#admin-section{border-top:1px solid var(--danger);margin-top:8px;}

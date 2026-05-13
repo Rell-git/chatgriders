@@ -2,20 +2,38 @@
 // PULSESHIP — chat.js  v9
 // ============================================================
 
-// ── Global error safety net ───────────────────────────────────
-window.addEventListener('error', e => console.error('JS Error:', e.message, e.filename, e.lineno));
-window.addEventListener('unhandledrejection', e => console.error('Promise rejection:', e.reason));
+// ── Random accent color on each app open ─────────────────────
+const ACCENT_PALETTE = [
+  {accent:'#7b6ef6',acc2:'#5a50c8',glow:'rgba(123,110,246,.18)'},  // violet
+  {accent:'#0ea5e9',acc2:'#0284c7',glow:'rgba(14,165,233,.18)'},    // sky blue
+  {accent:'#06b6d4',acc2:'#0891b2',glow:'rgba(6,182,212,.18)'},     // cyan
+  {accent:'#22c55e',acc2:'#16a34a',glow:'rgba(34,197,94,.18)'},     // green
+  {accent:'#ef4444',acc2:'#dc2626',glow:'rgba(239,68,68,.18)'},     // red
+  {accent:'#f97316',acc2:'#ea580c',glow:'rgba(249,115,22,.18)'},    // orange
+  {accent:'#ec4899',acc2:'#db2777',glow:'rgba(236,72,153,.18)'},    // pink
+  {accent:'#8b5cf6',acc2:'#7c3aed',glow:'rgba(139,92,246,.18)'},    // purple
+  {accent:'#14b8a6',acc2:'#0d9488',glow:'rgba(20,184,166,.18)'},    // teal
+];
+(function applyRandomAccent(){
+  const c=ACCENT_PALETTE[Math.floor(Math.random()*ACCENT_PALETTE.length)];
+  const r=document.documentElement.style;
+  r.setProperty('--accent',c.accent);
+  r.setProperty('--acc2',c.acc2);
+  r.setProperty('--glow',c.glow);
+  r.setProperty('--glow2',c.glow.replace('.18','.07'));
+  // Store for QR color
+  window._accent=c.accent;
+})();
 
-// Spinner timeout — show error after 12s if still loading
+// ── Global error safety net ───────────────────────────────────
+window.addEventListener('error',e=>console.error('JS Error:',e.message,e.lineno));
+window.addEventListener('unhandledrejection',e=>console.error('Unhandled:',e.reason));
+
+// Spinner timeout
 setTimeout(()=>{
   const w=document.getElementById('world-msgs');
   if(w&&w.innerHTML.includes('spinner')){
-    w.innerHTML=`<div style="padding:30px 20px;text-align:center">
-      <svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" width="32" height="32" style="margin-bottom:10px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <div style="font-weight:700;margin-bottom:6px">Connection timeout</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Could not reach the server. Check your internet or try again.</div>
-      <button class="btn" style="max-width:200px" onclick="location.reload()">Retry</button>
-    </div>`;
+    w.innerHTML=`<div style="padding:30px 20px;text-align:center"><svg viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" width="32" height="32" style="margin-bottom:10px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div style="font-weight:700;margin-bottom:6px">Connection timeout</div><div style="font-size:12px;color:var(--muted);margin-bottom:14px">Check your connection.</div><button class="btn" style="max-width:180px" onclick="location.reload()">Retry</button></div>`;
   }
 },12000);
 
@@ -36,7 +54,7 @@ let brainlyImageFile=null, brainlyAnswerTimers={};
 
 // ── Theme ─────────────────────────────────────────────────────
 function applyGlobalTheme(){
-  const t=localStorage.getItem('ps-theme')||'dark';
+  const t=localStorage.getItem('ps-theme')||'light';
   document.documentElement.setAttribute('data-theme',t);
   const icon=document.getElementById('sl-theme-icon'),lbl=document.getElementById('sl-theme-label');
   if(icon&&t==='dark') icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
@@ -69,6 +87,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(
     ME=p;
     try{initUI();}catch(e){console.error('initUI:',e);}
     try{initPresence();}catch(e){}
+    try{initAdminPanel();}catch(e){}
     cleanupWorld().catch(()=>{});
     loadWorldChat();
     loadConversations().catch(e=>console.warn('convos:',e));
@@ -362,8 +381,40 @@ async function sendTrade(){if(!activeUser)return;const offer=document.getElement
 function sendLocation(){document.getElementById('dot-menu').style.display='none';if(!activeUser)return;if(!navigator.geolocation)return alert('Not supported.');navigator.geolocation.getCurrentPosition(async pos=>{const{latitude:lat,longitude:lng}=pos.coords;await sb.from('private_messages').insert({sender_id:ME.id,receiver_id:activeUser,content:`📍 Location: https://www.google.com/maps?q=${lat},${lng}`});},()=>alert('Location denied.'));}
 
 // ── Add contact / QR ──────────────────────────────────────────
-function openAddModal(){document.getElementById('add-modal').style.display='flex';document.getElementById('add-code-input').value='';document.getElementById('add-result').innerHTML='';setTimeout(()=>document.getElementById('add-code-input').focus(),100);}
-function closeAddModal(){document.getElementById('add-modal').style.display='none';stopQRScanner();}
+function openAddModal(){
+  document.getElementById('add-modal').style.display='flex';
+  document.getElementById('add-code-input').value='';
+  document.getElementById('add-result').innerHTML='';
+  setTimeout(()=>document.getElementById('add-code-input').focus(),100);
+  loadAllUsers();
+}
+function closeAddModal(){document.getElementById('add-modal').style.display='none';}
+
+let _allUsersCache=[];
+async function loadAllUsers(){
+  const el=document.getElementById('all-users-list');
+  if(!el)return;
+  el.innerHTML='<div class="spinner"></div>';
+  const{data}=await sb.from('profiles').select('id,name,surname,avatar_seed,avatar_style,avatar_url,user_code,badge,popularity').neq('id',ME.id).order('name',{ascending:true}).limit(200);
+  _allUsersCache=data||[];
+  renderAllUsers(_allUsersCache);
+}
+function renderAllUsers(users){
+  const el=document.getElementById('all-users-list');if(!el)return;
+  if(!users.length){el.innerHTML='<div class="convo-empty">No users found</div>';return;}
+  el.innerHTML=users.map(u=>`
+    <div class="convo-item" onclick="startChatFromSearch('${u.id}','${escAttr(displayName(u))}','${escAttr(u.avatar_seed||'')}','${escAttr(u.avatar_style||'')}','${escAttr(u.avatar_url||'')}')">
+      <div class="convo-av"><img src="${getAvatar(u.avatar_seed,u.avatar_style,u.avatar_url)}" loading="lazy"></div>
+      <div class="convo-info">
+        <div class="convo-name">${escHtml(displayName(u))}${renderBadge(u.badge,u.popularity)}</div>
+        <div class="convo-preview">#${u.user_code||'------'}</div>
+      </div>
+    </div>`).join('');
+}
+function filterAllUsers(q){
+  const filtered=q?_allUsersCache.filter(u=>displayName(u).toLowerCase().includes(q.toLowerCase())||u.user_code?.includes(q)):_allUsersCache;
+  renderAllUsers(filtered);
+}
 function switchAddTab(tab){document.querySelectorAll('#add-modal .ctab').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase().includes(tab==='code'?'code':'scan')));document.getElementById('add-tab-code').style.display=tab==='code'?'':'none';document.getElementById('add-tab-scan').style.display=tab==='scan'?'':'none';if(tab==='scan')startQRScanner();else stopQRScanner();}
 function startQRScanner(){if(html5QrScanner)return;html5QrScanner=new Html5Qrcode('qr-reader');html5QrScanner.start({facingMode:'environment'},{fps:10,qrbox:200},code=>{stopQRScanner();const match=code.match(/(\d{6})/);if(match){document.getElementById('add-code-input').value=match[1];switchAddTab('code');searchByCode();}else document.getElementById('qr-scan-result').textContent='Invalid QR.';}).catch(()=>{document.getElementById('qr-scan-result').textContent='Camera access denied.';});}
 function stopQRScanner(){if(html5QrScanner){html5QrScanner.stop().catch(()=>{});html5QrScanner=null;}}
@@ -897,18 +948,83 @@ window.addEventListener('popstate',()=>{
   if(document.getElementById('group-thread-panel').classList.contains('active')){closeGroupThread();return;}
 });
 
-async function subscribePush() {
-  const reg = await navigator.serviceWorker.ready;
+// Push auto-subscribe on load if already granted
+if('Notification' in window && Notification.permission==='granted'){
+  subscribePush().catch(()=>{});
+}
 
-  const sub = await reg.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: 'BK8EFn9FA66z1Qh7BuOhwMnuJh7ksTn6jW8iwFxhRH68HrMJOaCVE3gcLmqz_FgmKvVMd52QNwcE7ypKUnwSsoA'
-  });
+// Send push via Supabase Edge Function
+async function sendPushToUser(userId,payload){
+  try{await sb.functions.invoke('send-push',{body:{user_id:userId,...payload}});}
+  catch(e){console.warn('Push send failed:',e);}
+}
 
-  await sb.from('push_subscriptions').upsert({
-    user_id: ME.id,
-    subscription: JSON.stringify(sub)
-  });
+// ══════════════════════════════════════════════════════════════
+// ADMIN NOTIFICATIONS (#000111)
+// ══════════════════════════════════════════════════════════════
+function initAdminPanel(){
+  if(ME?.user_code==='000111'){
+    const el=document.getElementById('admin-section');
+    if(el)el.style.display='';
+    const sel=document.getElementById('admin-notif-target');
+    if(sel)sel.addEventListener('change',e=>{
+      const row=document.getElementById('admin-target-code-row');
+      if(row)row.style.display=e.target.value==='single'?'block':'none';
+    });
+  }
+}
 
-  console.log('Push subscribed!');
+async function sendAdminNotif(){
+  if(ME?.user_code!=='000111'){alert('Access denied.');return;}
+  const title=document.getElementById('admin-notif-title')?.value.trim();
+  const body=document.getElementById('admin-notif-body')?.value.trim();
+  const target=document.getElementById('admin-notif-target')?.value;
+  const status=document.getElementById('admin-notif-status');
+  if(!title||!body){alert('Title and message required.');return;}
+  if(status)status.textContent='Sending…';
+
+  if(target==='single'){
+    const code=document.getElementById('admin-target-code')?.value.trim().padStart(6,'0');
+    const{data:p}=await sb.from('profiles').select('id').eq('user_code',code).maybeSingle();
+    if(!p){if(status)status.textContent='User not found.';return;}
+    // Save as notification in DB
+    await sb.from('notifications').insert({user_id:p.id,sender_id:ME.id,type:'admin',message:`${title}: ${body}`,is_read:false});
+    // Push
+    await sendPushToUser(p.id,{title,body,url:'/chat.html'});
+    if(status)status.textContent='✅ Sent to 1 user!';
+  }else{
+    // Get all users
+    const{data:allProfiles}=await sb.from('profiles').select('id').neq('id',ME.id);
+    if(!allProfiles?.length){if(status)status.textContent='No users found.';return;}
+    // Insert notifications in batches
+    const notifs=allProfiles.map(p=>({user_id:p.id,sender_id:ME.id,type:'admin',message:`${title}: ${body}`,is_read:false}));
+    await sb.from('notifications').insert(notifs);
+    // Push via edge function (broadcasts)
+    await sb.functions.invoke('send-push-broadcast',{body:{title,body,url:'/chat.html'}}).catch(()=>{});
+    if(status)status.textContent=`✅ Sent to ${allProfiles.length} users!`;
+    setTimeout(()=>{if(status)status.textContent='';},4000);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// OWN PROFILE — Facebook-style
+// ══════════════════════════════════════════════════════════════
+function openOwnProfile(){
+  openAboutView(ME.id);
+}
+
+// ══════════════════════════════════════════════════════════════
+// AUTO-ADD CHAT on first message (ensure sender appears in list)
+// ══════════════════════════════════════════════════════════════
+// Already handled in subscribeIncomingDMs via prependConvoItem
+// This ensures it also works when YOU send the first message:
+const _origSendPrivate = sendPrivate;
+async function sendPrivate(){
+  if(!activeUser)return;
+  // Ensure contact in list before sending
+  if(!document.querySelector(`.convo-item[data-uid="${activeUser}"]`)){
+    const{data:p}=await sb.from('profiles').select('*').eq('id',activeUser).maybeSingle();
+    if(p)prependConvoItem(p,'',false);
+  }
+  await _origSendPrivate();
 }
