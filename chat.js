@@ -1,3 +1,4 @@
+
 // ============================================================
 // PULSESHIP — chat.js  v9
 // ============================================================
@@ -201,8 +202,10 @@ function initPresence(){
 
 // ── Leaderboard ───────────────────────────────────────────────
 async function pingLeaderboard(){
-  const{data:ex}=await sb.from('leaderboard').select('score').eq('user_id',ME.id).maybeSingle();
-  await sb.from('leaderboard').upsert({user_id:ME.id,user_name:displayName(ME),score:(ex?.score||0)+60,updated_at:new Date().toISOString()});
+  try{
+    const{data:ex}=await sb.from('leaderboard').select('score').eq('user_id',ME.id).maybeSingle();
+    await sb.from('leaderboard').upsert({user_id:ME.id,user_name:displayName(ME),score:(ex?.score||0)+60,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  }catch(e){}
 }
 
 // ── World chat ────────────────────────────────────────────────
@@ -363,9 +366,21 @@ function renderTradeCard(content,imageUrl){const lines=content.split('\n');const
 function renderLocationCard(content){const url=content.replace('📍 Location: ','');const coords=url.split('?q=')[1]||'';const[lat,lng]=(coords.split(','));const mapImg=lat&&lng?`https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=14&size=300x140&markers=${lat},${lng}&format=png`:'';return `<div class="loc-card-standalone"><div class="loc-card-hdr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Location</div>${mapImg?`<img class="loc-map-img" src="${escHtml(mapImg)}" loading="lazy" alt="Map">`:''}<div class="loc-card-foot"><a href="${escHtml(url)}" target="_blank" rel="noopener" class="btn-accent-sm">Open in Maps</a></div></div>`;}
 
 async function sendPrivate(){
-  if(!activeUser)return;const inp=document.getElementById('thread-input'),txt=inp.value.trim();if(!txt)return;inp.value='';
+  if(!activeUser)return;
+  const inp=document.getElementById('thread-input'),txt=inp.value.trim();if(!txt)return;inp.value='';
+  // Auto-add contact to chats list if not already there
+  if(!document.querySelector(`.convo-item[data-uid="${activeUser}"]`)){
+    const{data:cp}=await sb.from('profiles').select('*').eq('id',activeUser).maybeSingle();
+    if(cp)prependConvoItem(cp,txt,false);
+  }
   const{data}=await sb.from('private_messages').insert({sender_id:ME.id,receiver_id:activeUser,content:txt}).select().single();
-  if(data){appendPrivateMsg(data);scrollBottom(document.getElementById('thread-msgs'));showSeenBar(null);const prev=document.querySelector(`.convo-item[data-uid="${activeUser}"] .convo-preview`);if(prev)prev.textContent=txt;}
+  if(data){
+    appendPrivateMsg(data);
+    scrollBottom(document.getElementById('thread-msgs'));
+    showSeenBar(null);
+    const prev=document.querySelector(`.convo-item[data-uid="${activeUser}"] .convo-preview`);
+    if(prev)prev.textContent=txt;
+  }
 }
 async function uploadPmImage(input){if(!activeUser)return;const file=input.files[0];if(!file)return;const path=`pm/${ME.id}/${Date.now()}-${file.name}`;await sb.storage.from('chat-images').upload(path,file);const{data:{publicUrl}}=sb.storage.from('chat-images').getPublicUrl(path);const{data}=await sb.from('private_messages').insert({sender_id:ME.id,receiver_id:activeUser,image_url:publicUrl}).select().single();if(data){appendPrivateMsg(data);scrollBottom(document.getElementById('thread-msgs'));}input.value='';}
 
@@ -581,7 +596,7 @@ async function checkAnonDaily(){
 
 async function loadMatchOnlineUsers(){
   // Show users currently in the anon queue
-  const{data}=await sb.from('anon_queue').select('user_id, profiles(name,surname,avatar_seed,avatar_style,avatar_url)').limit(12).catch(()=>({data:[]}));
+  const{data}=await sb.from('anon_queue').select('user_id, profiles(name,surname,avatar_seed,avatar_style,avatar_url)').limit(12).then(r=>r).catch(()=>({data:[]}));
   const count=document.getElementById('match-online-count');
   const avatars=document.getElementById('match-online-avatars');
   if(!count||!avatars)return;
@@ -695,7 +710,7 @@ async function createGroup(){
 }
 
 async function loadGroups(){
-  await sb.from('group_chats').delete().lt('expires_at',new Date().toISOString()).not('expires_at','is',null).catch(()=>{});
+  try{await sb.from('group_chats').delete().lt('expires_at',new Date().toISOString()).not('expires_at','is',null);}catch(e){}
   const{data:mems}=await sb.from('group_members').select('group_id').eq('user_id',ME.id);
   const list=document.getElementById('group-list');
   if(!mems?.length){list.innerHTML='<div class="convo-empty">No party rooms yet.</div>';return;}
@@ -1013,18 +1028,4 @@ function openOwnProfile(){
   openAboutView(ME.id);
 }
 
-// ══════════════════════════════════════════════════════════════
-// AUTO-ADD CHAT on first message (ensure sender appears in list)
-// ══════════════════════════════════════════════════════════════
-// Already handled in subscribeIncomingDMs via prependConvoItem
-// This ensures it also works when YOU send the first message:
-const _origSendPrivate = sendPrivate;
-async function sendPrivate(){
-  if(!activeUser)return;
-  // Ensure contact in list before sending
-  if(!document.querySelector(`.convo-item[data-uid="${activeUser}"]`)){
-    const{data:p}=await sb.from('profiles').select('*').eq('id',activeUser).maybeSingle();
-    if(p)prependConvoItem(p,'',false);
-  }
-  await _origSendPrivate();
-}
+// Auto-add contact when sending first message - handled inline in sendPrivate above
